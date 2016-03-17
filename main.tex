@@ -1,0 +1,241 @@
+\documentclass[10pt,a4paper,oneside]{book}
+%Package
+\usepackage{geometry}
+\geometry{
+a4paper,
+total={210mm,297mm},
+left=25mm,
+right=25mm,
+top=25mm,
+bottom=25mm,
+}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{float}
+\usepackage{ifthen}
+\usepackage{footnote}
+\usepackage{graphicx}
+\usepackage{framed}
+\usepackage{hyperref} %Cross-reference
+\usepackage[moderate]{savetrees}
+
+\usepackage{gensymb} %degree symbol
+
+\usepackage{setspace} %Allows spacesetting
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{adjustbox}
+\usepackage{tabulary}
+\usepackage{pdfpages}
+\usepackage{epstopdf}
+
+
+\usepackage{longtable}
+\usepackage{subcaption}
+\usepackage{blindtext}
+%usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[titletoc]{appendix}
+\usepackage{titlesec}
+\usepackage{cancel}
+%usepackage[numbered, autolinebreaks, framed]{mcode}
+\usepackage[intoc]{nomencl}
+\usepackage{multicol}
+\usepackage{subcaption}
+\RequirePackage{ifthen}
+\renewcommand{\nomgroup}[1]{%
+\ifthenelse{\equal{#1}{R}}{\item[\textbf{Roman symbols}]}{}
+\ifthenelse{\equal{#1}{G}}{\item[\textbf{Greek symbols}]}{}}
+\setlength\parindent{0pt}
+
+
+%\usepackage{subcaption}
+\makenomenclature
+\renewcommand{\nomname}{List of Symbols}
+
+
+
+\usepackage{graphicx}
+\usepackage{a4wide}
+\special{papersize=210mm,297mm}
+\usepackage{titlesec}
+\usepackage{rotating}
+\usepackage{color}
+\usepackage{gensymb}
+\usepackage{tabularx}
+\usepackage[square, numbers, comma, sort&compress]{natbib}
+\titlespacing{\chapter}{0pt}{-50pt}{0pt}
+\titlespacing{\section}{0pt}{-30pt}{0pt}
+\titlespacing{\subsection}{0pt}{-30pt}{0pt}
+\titlespacing{\subsubsection}{0pt}{5pt}{0pt}
+
+\usepackage{geometry}
+\geometry{margin=2.6cm}
+%\geometry{top=35mm}
+\pagestyle{plain}
+
+
+%Title spacing etc
+%\titlespacing{\chapter}{0pt}{0pt}{0pt}
+%\titlespacing{\section}{0pt}{0pt}{0pt}
+%\titlespacing{\subsection}{0pt}{0pt}{0pt}
+%\titlespacing{\subsubsection}{0pt}{0pt}{0pt}
+%renewcommand{\baselinestretch}{.9}
+\usepackage{setspace}
+%\onehalfspacing
+%\doublespacing
+\setstretch{0.955}
+%\setlength{\parskip}{-0.2cm}
+
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{18pt}{\Huge}
+\makeatletter
+\renewcommand{\@makechapterhead}[1]{%
+{\setlength{\parindent}{0pt} \raggedright \normalfont
+\bfseries\Huge\thechapter.\ #1
+\par\nobreak\vspace{0pt}}}
+\makeatother
+
+
+
+
+%Header and Footer
+\usepackage[automark]{scrpage2}
+\pagestyle{scrheadings}
+\clearscrheadings
+\clearscrplain
+\lehead{\headmark}
+\rohead{\headmark}
+\cfoot[\pagemark]{\pagemark}
+%\setheadsepline{.3pt}
+
+
+%Custom commands
+%\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+%Definition of Path of Graphics further paths can be added
+\graphicspath{{./Images/}}
+\graphicspath{{./Figures/}}
+
+\begin{document}
+\hypersetup{urlcolor=blue, colorlinks=true}
+\graphicspath{Figures/} 
+\begin{titlepage}
+\begin{center}
+\includegraphics[width=0.9\linewidth]{images/TU_Delft_logo.eps}\\ [0.4cm]
+ Delft University of Technology\\ [0.2cm]
+ Faculty of Aerospace Engineering\\[2cm]
+
+
+
+\hrulefill \\[1.0cm]
+{ \huge \bfseries Flight Dynamics Report\\
+\vspace{5mm}
+AE3212-II Simulation, Verification and Validation \\ [1.0cm]
+}
+
+
+\hrulefill \\[1.0cm]
+\textsc{Group B21}\\[0.5cm]
+\begin{minipage}{0.8\textwidth}
+\begin{flushleft} \large
+\emph{Authors:}\\
+Eline Bakker (4233816) \\
+Terence Celestina (1524658)\\
+Yanni Chiodi (4227271)\\
+Mats Dirkzwager (4206223)\\
+Sebastiaan van Schie (4213602)\\
+
+
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+\begin{flushright} \large
+%\emph{Tutor:} \\
+%? \textsc{?}
+\end{flushright}
+\end{minipage}
+
+
+
+\vspace{25cm}
+
+\end{center}
+
+\end{titlepage}
+
+%Begin of the Document
+
+\pagenumbering{roman}
+
+%Titlespacing
+\titlespacing{\chapter}{0pt}{0pt plus 0pt minus 6pt}{0pt}
+\titlespacing{\section}{0pt}{0pt plus 0pt minus 0pt}{-1.7pt}
+\titlespacing{\subsection}{0pt}{9pt plus 6pt minus 6pt}{-1.7pt}
+\titlespacing{\subsubsection}{0pt}{12pt plus 6pt minus 6pt}{6pt}
+
+%setlength{\nomitemsep}{-\parsep}
+%\printnomenclature
+
+\makenomenclature
+
+
+\renewcommand{\nomgroup}[1]{%
+  \ifthenelse{\equal{#1}{A}}{%
+   \medskip\item[\large\textbf{\textsf{Latin}}]\medskip%
+    }{%
+    \ifthenelse{\equal{#1}{B}}{%    
+     \medskip\item[\large\textbf{\textsf{Greek}}]\medskip}{%
+            \medskip}
+    }
+}
+
+\renewcommand*\nompreamble{\begin{multicols}{2}}
+\renewcommand*\nompostamble{\end{multicols}}
+%setlength{\nomitemsep}{-\parsep}
+\printnomenclature
+
+
+
+
+
+
+%Table of contents
+
+\begin{spacing}{0.9}
+{\tableofcontents}
+\end{spacing}
+
+%List of Symbols
+%\addcontentsline{toc}{chapter}{List of symbols}
+%STILL TO BE PUT 
+
+\newpage
+%Actual Content
+\pagenumbering{arabic}
+
+%Introduction
+{\let\clearpage\relax\chapter{Introduction}}
+\label{ch:Introduction}
+\input{Introduction.tex}
+%\newpage
+
+
+
+%If you want to add a new chapter first make a new .tex file (the name MUST NOT contain a blank character)
+%Chapter 2: Problem analysis
+
+
+{\let\clearpage\relax\input{Code_layout.tex}}
+
+%Create Bibliography
+{\let\clearpage\relax\bibliography{bib.bib}}
+%Bibstyle
+\bibliographystyle{plain}
+\addcontentsline{toc}{chapter}{Bibliography}
+\end{document}
