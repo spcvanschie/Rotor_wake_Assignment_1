@@ -7,6 +7,7 @@
 *.out
 *.toc
 *.fmt
+*.gz
 *main.pdf
 
 ## Intermediate documents:
