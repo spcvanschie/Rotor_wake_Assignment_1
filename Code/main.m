@@ -14,4 +14,4 @@ a = 0.3*ones(1,N);
 a_tan = 0.2*ones(1,N);
 
 % calculate annulus characteristics, contains iteration loop for induction factors
-[W,phi,AoA,Cx,Cy,a_new,a_tan_new]=annulus_calc(a,a_tan,U_inf,r,omega,chordangle,Clspline,Cdspline,blade_solidity);
+[W,phi,AoA,Cx,Cy,a_new,a_tan_new]=annulus_calc(N,a,a_tan,U_inf,r,omega,chordangle,Clspline,Cdspline,blade_solidity);
