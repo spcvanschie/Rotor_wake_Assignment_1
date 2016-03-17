@@ -7,7 +7,6 @@ a_all=cell(1,3);
 a_tan_all=cell(1,3);
 AoA_all=cell(1,3);
 phi_all=cell(1,3);
-a_all=cell(1,3);
 for i = (1:3)
     % calculate interpolation splines for airfoil Cl and Cd
     [Clspline,Cdspline]=airfoil_liftdrag();
@@ -25,6 +24,22 @@ end
 
 figure(1)
 subplot(2,1,1)
+plot(mu_local,AoA_all{1,1},mu_local,AoA_all{1,2},mu_local,AoA_all{1,3})
+grid on
+title('Angle of Attack')
+legend('\lambda = 6','\lambda = 8','\lambda = 10')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Angle of Attack \alpha [deg]')
+subplot(2,1,2)
+plot(mu_local,phi_all{1,1},mu_local,phi_all{1,2},mu_local,phi_all{1,3})
+grid on
+title('Inflow angle')
+legend('\lambda = 6','\lambda = 8','\lambda = 10')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Inflow angle \phi [deg]')
+
+figure(2)
+subplot(2,1,1)
 plot(mu_local,a_all{1,1},mu_local,a_all{1,2},mu_local,a_all{1,3})
 grid on
 title('Induction factor')
@@ -34,7 +49,7 @@ ylabel('Induction factor a [-]')
 subplot(2,1,2)
 plot(mu_local,a_tan_all{1,1},mu_local,a_tan_all{1,2},mu_local,a_tan_all{1,3})
 grid on
-title('Induction factor')
+title('Tangential induction factor')
 legend('\lambda = 6','\lambda = 8','\lambda = 10')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induction factor a'' [-]')
