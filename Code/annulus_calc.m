@@ -25,8 +25,8 @@ for i = (1:N)
         torque_a_tan = blade_solidity(i).*Cy./(4.*sinphi.*cosphi);
         a_calc = thrust_a./(1+thrust_a);
         a_tan_calc = torque_a_tan./(1-torque_a_tan);
-        if abs(a_calc-a_1)<0.001.*a_calc 
-            if abs(a_tan_calc-a_tan_1)<0.001.*a_tan_calc
+        if abs(a_calc-a_1)<0.001*a_calc 
+            if abs(a_tan_calc-a_tan_1)<0.001*a_tan_calc
                 run = 0;
             end
         end
