@@ -1,12 +1,18 @@
-function [R,B,mu_min,mu,twist,chordlength]= geometry(N,pitch)
+function [R,B,mu_min,mu_local,twist,chordlength,omega]= geometry(N,pitch,lambda,U_inf)
 % Input parameters: N (number of annuli), pitch (blade pitch angle)
 
 R = 50; % blade radius [m]
 B = 3; % number of blades [-]
 mu_min = 0.2; % spanwise start of blade [-]
 
-mu = linspace(mu_min,1,N); % r/R per annulus [-]
-twist = 14*(1-mu); % twist per annulus [deg]
-chordlength = 3*(1-mu)+1; % chord length per annulus [m]
+omega = lambda*U_inf/R; % Rotational speed [1/s]
+
+mu_local = linspace(mu_min,1,N); % r/R per annulus [-]
+
+% adjustable design parameters for second part of assignment
+% ----------------------------------------------------------
+twist = 14*(1-mu_local); % twist for each annulus [deg]
+chordlength = 3*(1-mu_local)+1; % chord length for each annulus [m]
+% ----------------------------------------------------------
 
 end
