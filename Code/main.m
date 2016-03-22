@@ -1,4 +1,4 @@
-N = 100; % number of annuli
+N = 550; % number of annuli
 pitch = 2; % blade pitch angle [deg]
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
@@ -23,12 +23,19 @@ AoA_all{1,i} = AoA;
 phi_all{1,i} = phi;
 end
 
+% figure axis ranges
+axis_alpha = [0.2 1 0 15];
+axis_phi = [0.2 1 0 30];
+axis_a = [0.2 1 0 1];
+axis_a_tan = [0.2 1 0 0.1];
+
 figure(1)
 subplot(2,1,1)
 plot(mu_local,AoA_all{1,1},mu_local,AoA_all{1,2},mu_local,AoA_all{1,3})
 grid on
 title('Angle of Attack')
 legend('\lambda = 6','\lambda = 8','\lambda = 10')
+axis(axis_alpha)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Angle of Attack \alpha [deg]')
 subplot(2,1,2)
@@ -36,6 +43,7 @@ plot(mu_local,phi_all{1,1},mu_local,phi_all{1,2},mu_local,phi_all{1,3})
 grid on
 title('Inflow angle')
 legend('\lambda = 6','\lambda = 8','\lambda = 10')
+axis(axis_phi)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Inflow angle \phi [deg]')
 
@@ -45,6 +53,7 @@ plot(mu_local,a_all{1,1},mu_local,a_all{1,2},mu_local,a_all{1,3})
 grid on
 title('Induction factor')
 legend('\lambda = 6','\lambda = 8','\lambda = 10')
+axis(axis_a)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induction factor a [-]')
 subplot(2,1,2)
@@ -52,5 +61,6 @@ plot(mu_local,a_tan_all{1,1},mu_local,a_tan_all{1,2},mu_local,a_tan_all{1,3})
 grid on
 title('Tangential induction factor')
 legend('\lambda = 6','\lambda = 8','\lambda = 10')
+axis(axis_a_tan)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induction factor a'' [-]')

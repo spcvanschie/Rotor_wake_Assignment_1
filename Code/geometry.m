@@ -8,6 +8,7 @@ omega = lambda*U_inf/R; % Rotational speed [1/s]
 
 mu_local = linspace(mu_min+(1-mu_min)/N,1-(1-mu_min)/N,N); % r/R per annulus [-]
 r = mu_local*R; % local annulus radius [m]
+
 % adjustable design parameters for second part of assignment
 % ----------------------------------------------------------
 twist = 14*(1-mu_local); % twist for each annulus [deg]
