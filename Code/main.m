@@ -1,7 +1,8 @@
-N = 400; % number of annuli
+N = 100; % number of annuli
 pitch = 2; % blade pitch angle [deg]
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
+mu_min = 0.2; % spanwise start of blade [-]
 
 a_all=cell(1,3);
 a_tan_all=cell(1,3);
@@ -12,10 +13,10 @@ for i = (1:3)
     [Clspline,Cdspline]=airfoil_liftdrag();
 
     % calculate geometrical parameters for each annulus
-    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N,pitch,lambda(i),U_inf);
+    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N,pitch,lambda(i),U_inf,mu_min);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi,AoA,Cx,Cy,a_new,a_tan_new]=annulus_calc(N,U_inf,r,omega,chordangle,Clspline,Cdspline,blade_solidity);
+    [W,phi,AoA,Cx,Cy,a_new,a_tan_new]=annulus_calc(N,U_inf,r,omega,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min);
 a_all{1,i} = a_new;
 a_tan_all{1,i} = a_tan_new;
 AoA_all{1,i} = AoA;
