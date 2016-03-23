@@ -8,6 +8,7 @@ a_all=cell(1,3);
 a_tan_all=cell(1,3);
 AoA_all=cell(1,3);
 phi_all=cell(1,3);
+C_t_all=cell(1,3);
 for i = (1:3)
     % calculate interpolation splines for airfoil Cl and Cd
     [Clspline,Cdspline]=airfoil_liftdrag();
@@ -21,6 +22,7 @@ a_all{1,i} = a_new;
 a_tan_all{1,i} = a_tan_new;
 AoA_all{1,i} = AoA;
 phi_all{1,i} = phi;
+[C_t_all{1,i}] = Glauert(a_new);
 end
 
 % figure axis ranges
@@ -28,6 +30,7 @@ axis_alpha = [0.2 1 0 15];
 axis_phi = [0.2 1 0 30];
 axis_a = [0.2 1 0 1];
 axis_a_tan = [0.2 1 0 0.1];
+axis_C_t = [0.2 1 0 1.5];
 
 figure(1)
 subplot(2,1,1)
@@ -64,3 +67,12 @@ legend('\lambda = 6','\lambda = 8','\lambda = 10')
 axis(axis_a_tan)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induction factor a'' [-]')
+
+figure(3)
+plot(mu_local,C_t_all{1,1},mu_local,C_t_all{1,2},mu_local,C_t_all{1,3})
+grid on
+title('Thrust coefficient')
+legend('\lambda = 6','\lambda = 8','\lambda = 10')
+axis(axis_C_t)
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Thrust coefficient C_{T} [-]')
