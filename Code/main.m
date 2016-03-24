@@ -119,3 +119,7 @@ legend('\lambda = 6','\lambda = 8','\lambda = 10')
 %axis(axis_C_q)
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque coefficient C_{q} [-]')
+
+% if length(N)>1
+%     figure(5)
+%     
