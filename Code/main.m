@@ -1,10 +1,11 @@
-N = [550]; % number of annuli
+N = [50 100 150]; % number of annuli
 pitch = 2; % blade pitch angle [deg]
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
 rho = 1.225; % air density [kg/m^3]
 
+mu=cell(length(N),3);
 a_all=cell(length(N),3);
 a_tan_all=cell(length(N),3);
 AoA_all=cell(length(N),3);
@@ -26,6 +27,7 @@ for j = (1:length(N))
         [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min);
 
     % writing all obtained variables to the memory    
+    mu{j,i} = mu_local;
     a_all{j,i} = a_new;
     a_tan_all{j,i} = a_tan_new;
     AoA_all{j,i} = AoA;
@@ -120,6 +122,13 @@ legend('\lambda = 6','\lambda = 8','\lambda = 10')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque coefficient C_{q} [-]')
 
-% if length(N)>1
-%     figure(5)
-%     
+if length(N)>1
+    figure(5)
+    plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2})
+    grid on
+    title('Induction factor (\lambda = 8)')
+    legend('N = 100','N = 300','N = 500')
+    axis(axis_a)
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Induction factor a [-]')
+end
