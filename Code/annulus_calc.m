@@ -1,11 +1,16 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,delta_mu)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,delta_mu,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 
 % Initial guesses for a and a_tangential
-a = 0.01*ones(1,N);
-a_tan = 0.01*ones(1,N);
+if optimise < 1
+    a = 0.01*ones(1,N);
+    a_underrelax = 0.1; % induction factor underrelaxation factor
+else
+    a = a_defined;
+    a_underrelax = 0; % induction factor underrelaxation factor
+end
 
-a_underrelax = 0.1; % induction factor underrelaxation factor
+a_tan = 0.01*ones(1,N);
 a_tan_underrelax = 0.1; % tangential induction factor underrelaxation factor
 
 a_new = zeros(1,N);

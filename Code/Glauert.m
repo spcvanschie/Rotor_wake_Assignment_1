@@ -1,4 +1,4 @@
-function [C_t]=Glauert(a)
+function C_t=Glauert(a)
 C_t = ones(1,length(a));
 C_t1 = 1.816;
 a_1 = 1 + 0.5*sqrt(C_t1);
