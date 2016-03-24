@@ -1,4 +1,6 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,delta_mu)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,delta_mu)
+delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
+
 % Initial guesses for a and a_tangential
 a = 0.01*ones(1,N);
 a_tan = 0.01*ones(1,N);
@@ -11,6 +13,7 @@ a_tan_new = zeros(1,N);
 phi_all = zeros(1,N);
 AoA_all = zeros(1,N);
 Cx_all = zeros(1,N);
+Thrust_all = zeros(1,N);
 Q_all = zeros(1,N);
 Cq_all = zeros(1,N);
 for i = (1:N)
@@ -49,7 +52,9 @@ for i = (1:N)
     end
     % After the induction factors have been determined we can calculate the forces on each annulus
     
-    Torque_dmu = 4*pi*rho*(U_inf^2)*omega*r(i)*a_tan_calc*(1-a_calc)*(r(i).^2)*delta_mu*R - 0.5*rho*(W^2)*B*chordlength(i)*ppval(Cdspline,AoA)*cosphi*r(i)*delta_mu*R; % torque per annulus
+    Thrust_dmu = 0.5*rho*(W^2)*B*chordlength(i)*Cx*delta_mu;
+    Torque_dmu = 0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*delta_mu;
+    Thrust_all(i) = Thrust_dmu;
     Q_all(i) = Torque_dmu;
     Cq_all(i) = Torque_dmu/(0.5*rho*(U_inf^2)*pi*(R^3));
     a_new(i) = a_calc;
