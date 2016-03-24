@@ -1,9 +1,9 @@
-N = [100 200]; % number of annuli
+N = [550]; % number of annuli
 pitch = 2; % blade pitch angle [deg]
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
-rho = 1.225 % air density [kg/m^3]
+rho = 1.225; % air density [kg/m^3]
 
 a_all=cell(length(N),3);
 a_tan_all=cell(length(N),3);
