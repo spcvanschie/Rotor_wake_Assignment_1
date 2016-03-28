@@ -21,6 +21,7 @@ C_n_all=cell(length(N),3);
 Thrust_all = cell(length(N),3);
 Torque_all = cell(length(N),3);
 Cq_all = cell(length(N),3);
+Power = ones(1,3);
 for j = (1:length(N))
     for i = (1:3)
         % calculate interpolation splines for airfoil Cl and Cd
@@ -30,7 +31,7 @@ for j = (1:length(N))
         [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist,chordlength);
 
         % calculate annulus characteristics, contains iteration loop for induction factors
-        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
+        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
 
     % writing all obtained variables to the memory    
     mu{j,i} = mu_local;
@@ -43,6 +44,7 @@ for j = (1:length(N))
     Thrust_all{j,i} = Thrust;
     Torque_all{j,i} = Torque;
     Cq_all{j,i} = C_torque;
+    Power(1,i) = P;
     end
 end
 
@@ -52,6 +54,7 @@ maxtwist = 14; % root twist angle [deg]
 rootminustip = 3; % root chord length minus tip chord [m]
 pitch = 2; % blade pitch angle [deg]
 
+x0 = [maxtwist rootminustip pitch];
 lambda = 8;
 
 if optimise > 0
@@ -65,7 +68,7 @@ if optimise > 0
     [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda,U_inf,mu_min,twist,chordlength);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
+    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
 
     
 end

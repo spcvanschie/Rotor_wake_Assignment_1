@@ -1,4 +1,4 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 
 % Initial guesses for a and a_tangential
@@ -83,4 +83,5 @@ Cq_all_real = cumsum(Cq_all);
 Q_all = Q_all_real;
 Cq_all = Cq_all_real;
 Cp_all = Cq_all.*lambda;
+P = Q_all(end)*omega;
 end
