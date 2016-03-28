@@ -1,4 +1,4 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 
 % Initial guesses for a and a_tangential
@@ -21,11 +21,13 @@ Cx_all = zeros(1,N);
 Thrust_all = zeros(1,N);
 Q_all = zeros(1,N);
 Cq_all = zeros(1,N);
+Thrust_convergence = zeros(10,N);
 for i = (1:N)
     a_1 = a(i);
     a_tan_1 = a_tan(i);
     
     run = 1; % iteration variable
+    iteration = 1; % iteration number
     while run>0
         mu_current = mu_local(i) % console output to show current spanwise coordinate
         W = sqrt((U_inf.*(1-a_1)).^2+(r(i).*omega.*(1+a_tan_1)).^2);
@@ -64,6 +66,8 @@ for i = (1:N)
         a_1 = a_1_new;
         a_tan_1_new = a_tan_1 + a_tan_underrelax*(a_tan_calc - a_tan_1);
         a_tan_1 = a_tan_1_new;
+        Thrust_convergence(iteration,i) = 0.5*rho*(W^2)*B*chordlength(i)*Cx*R*delta_mu;
+        iteration = iteration + 1;
     end
     % After the induction factors have been determined we can calculate the forces on each annulus
     

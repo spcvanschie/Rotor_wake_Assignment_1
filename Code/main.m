@@ -22,16 +22,17 @@ Thrust_all = cell(length(N),3);
 Torque_all = cell(length(N),3);
 Cq_all = cell(length(N),3);
 Power = ones(1,3);
+Thrust_convergence = cell(length(N),3);
 for j = (1:length(N))
     for i = (1:3)
         % calculate interpolation splines for airfoil Cl and Cd
-        [Clspline,Cdspline]=airfoil_liftdrag();
+        [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
 
         % calculate geometrical parameters for each annulus
         [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist,chordlength);
 
         % calculate annulus characteristics, contains iteration loop for induction factors
-        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
+        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P,Thrust_converge]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
 
     % writing all obtained variables to the memory    
     mu{j,i} = mu_local;
@@ -45,6 +46,7 @@ for j = (1:length(N))
     Torque_all{j,i} = Torque;
     Cq_all{j,i} = C_torque;
     Power(1,i) = P;
+    Thrust_convergence{j,i} = Thrust_convergence_history(Thrust_converge,Thrust);
     end
 end
 
@@ -68,7 +70,7 @@ if optimise > 0
     [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda,U_inf,mu_min,twist,chordlength);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
+    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
 
     
 end
@@ -82,6 +84,8 @@ axis_a_tan = [0.2 1 0 0.1];
 axis_C_t = [0.2 1 0 1.2];
 axis_C_n = [0.2 1 0 1.2];
 axis_C_q = [0.2 1 0 1.5];
+axis_Cl = [-16 30 -1 1.5];
+axis_Cd = [-16 30 0 0.7];
 
 figure(1)
 subplot(2,1,1)
@@ -155,8 +159,36 @@ legend('\lambda = 6','\lambda = 8','\lambda = 10')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque coefficient C_{q} [-]')
 
+figure(5)
+plot(linspace(1,length(Thrust_convergence{length(N),1}),length(Thrust_convergence{length(N),1})),Thrust_convergence{length(N),1},linspace(1,length(Thrust_convergence{length(N),2}),length(Thrust_convergence{length(N),2})),Thrust_convergence{length(N),2},linspace(1,length(Thrust_convergence{length(N),3}),length(Thrust_convergence{length(N),3})),Thrust_convergence{length(N),3})
+grid on
+title('Thrust convergence history')
+legend('\lambda = 6','\lambda = 8','\lambda = 10')
+%axis(axis_C_t)
+xlabel('Iteration number')
+ylabel('Blade thrust [N]')
+
+figure(6)
+subplot(2,1,1)
+alpha_interpolation=linspace(min(alphadata),max(alphadata),500);
+plot(alphadata,Cldata,'o',alpha_interpolation,ppval(Clspline,alpha_interpolation))
+grid on
+title('C_{l} - \alpha data')
+legend('C_{l}-values','Interpolation data')
+axis(axis_Cl)
+xlabel('Angle of attack \alpha [deg]')
+ylabel('C_{l} [-]')
+subplot(2,1,2)
+plot(alphadata,Cddata,'o',alpha_interpolation,ppval(Cdspline,alpha_interpolation))
+grid on
+title('C_{d} - \alpha data')
+legend('C_{d}-values','Interpolation curve')
+axis(axis_Cd)
+xlabel('Angle of attack \alpha [deg]')
+ylabel('C_{d} [-]')
+
 if length(N)>1
-    figure(5)
+    figure(7)
     plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2})
     grid on
     title('Induction factor (\lambda = 8)')
