@@ -68,3 +68,8 @@ for i = (1:N)
     AoA_all(i) = AoA;
     Cx_all(i) = Cx;
 end
+Q_all_real = cumsum(Q_all);
+Cq_all_real = cumsum(Cq_all);
+Q_all = Q_all_real;
+Cq_all = Cq_all_real;
+end

@@ -47,13 +47,15 @@ for j = (1:length(N))
 end
 
 %% Blade optimisation section of code
+% starting values of optimisation parameters
+maxtwist = 14; % root twist angle [deg]
+rootminustip = 3; % root chord length minus tip chord [m]
+pitch = 2; % blade pitch angle [deg]
+
 if optimise > 0
     C_t_design = 0.75;
-    a = a_from_C_t(C_t_design)*ones(1,max(N));
+    a = a_from_C_t(C_t_design)*ones(1,max(N));    
     
-    maxtwist = 14; % root twist angle [deg]
-    rootminustip = 3; % root chord length minus tip chord [m]
-    pitch = 2; % blade pitch angle [deg]
     twist = maxtwist*(1-mu_local); % twist for each annulus [deg]
     chordlength = rootminustip*(1-mu_local)+1; % chord length for each annulus [m]
     
