@@ -52,6 +52,8 @@ maxtwist = 14; % root twist angle [deg]
 rootminustip = 3; % root chord length minus tip chord [m]
 pitch = 2; % blade pitch angle [deg]
 
+lambda = 8;
+
 if optimise > 0
     C_t_design = 0.75;
     a = a_from_C_t(C_t_design)*ones(1,max(N));    
@@ -60,10 +62,10 @@ if optimise > 0
     chordlength = rootminustip*(1-mu_local)+1; % chord length for each annulus [m]
     
     % calculate geometrical parameters for each annulus
-    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist,chordlength);
+    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda,U_inf,mu_min,twist,chordlength);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,optimise,0);
+    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
 
     
 end

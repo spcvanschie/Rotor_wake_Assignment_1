@@ -1,4 +1,4 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,delta_mu,optimise,a_defined)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 
 % Initial guesses for a and a_tangential
@@ -38,13 +38,23 @@ for i = (1:N)
         Cy = ppval(Clspline,AoA).*sinphi-ppval(Cdspline,AoA).*cosphi;
         thrust_a_prelim = blade_solidity(i).*Cx./(4.*(sinphi.^2));
         torque_a_tan_prelim = blade_solidity(i).*Cy./(4.*sinphi.*cosphi);
-        a_calc_prelim = thrust_a_prelim./(1+thrust_a_prelim);
+        if optimise < 1
+            a_calc_prelim = thrust_a_prelim./(1+thrust_a_prelim);
+        else
+            a_calc_prelim = a_defined(i);
+        end
         f_tip_1 = (2/pi)*acos(exp(-((B/2)*((1-mu_local(i))/mu_local(i))*sqrt(1+((lambda*mu_local(i))^2)/((1-a_calc_prelim)^2)))));
         f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_local(i)-mu_min)/mu_local(i))*sqrt(1+((lambda*mu_local(i))^2)/((1-a_calc_prelim)^2)))));
         f_1 = f_tip_1*f_root_1;
-        a_calc = thrust_a_prelim*((1-a_calc_prelim)^2)/(f_1*(1-a_calc_prelim*f_1));
-        a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
-        a_tan_calc = torque_a_tan_prelim*(1-a_calc)*(1+a_tan_calc_prelim)/(f_1*(1-a_calc*f_1));
+        if optimise < 1
+            a_calc = thrust_a_prelim*((1-a_calc_prelim)^2)/(f_1*(1-a_calc_prelim*f_1));
+            a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
+            a_tan_calc = torque_a_tan_prelim*(1-a_calc)*(1+a_tan_calc_prelim)/(f_1*(1-a_calc*f_1));
+        else
+            a_calc = a_calc_prelim;
+            a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
+            a_tan_calc = torque_a_tan_prelim*(1-a_defined(i))*(1+a_tan_calc_prelim)/(f_1*(1-a_defined(i)*f_1));
+        end
         if abs(a_calc-a_1)<0.01*abs(a_calc) 
             if abs(a_tan_calc-a_tan_1)<0.01*abs(a_tan_calc)
                 run = 0;
@@ -57,8 +67,8 @@ for i = (1:N)
     end
     % After the induction factors have been determined we can calculate the forces on each annulus
     
-    Thrust_dmu = 0.5*rho*(W^2)*B*chordlength(i)*Cx*delta_mu;
-    Torque_dmu = 0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*delta_mu;
+    Thrust_dmu = 0.5*rho*(W^2)*B*chordlength(i)*Cx*R*delta_mu;
+    Torque_dmu = 0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*R*delta_mu;
     Thrust_all(i) = Thrust_dmu;
     Q_all(i) = Torque_dmu;
     Cq_all(i) = Torque_dmu/(0.5*rho*(U_inf^2)*pi*(R^3));
@@ -72,4 +82,5 @@ Q_all_real = cumsum(Q_all);
 Cq_all_real = cumsum(Cq_all);
 Q_all = Q_all_real;
 Cq_all = Cq_all_real;
+Cp_all = Cq_all.*lambda;
 end
