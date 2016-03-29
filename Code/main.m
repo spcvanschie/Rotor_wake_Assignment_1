@@ -11,8 +11,8 @@ pitch = 2; % blade pitch angle [deg]
 twist_par = 14; % twist for each annulus [deg]
 chordlength_par = 3; % chord length for each annulus [m]
 
-baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
+baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
+optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);
@@ -136,6 +136,13 @@ if optimise > 0
     [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
     Maxpower = P;
     Cp_maxpower = Maxpower/(0.5*rho*(U_inf^3)*pi*(R^2))
+    AoA_opt = AoA;
+    a_opt = a_new;
+    a_tan_opt = a_tan_new;
+    phi_opt = phi;
+    C_t_opt = Glauert(a_new);
+    C_q_opt = C_torque;
+    
 end
 
 
@@ -276,10 +283,52 @@ if optimise > 0
     %axis(axis_Cd)
     xlabel('Pitch angle [deg]')
     ylabel('Power [W]')
+    
+    figure(10)
+    subplot(2,1,1)
+    plot(mu_local,AoA_opt)
+    grid on
+    title('Angle of attack of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Angle of attack \alpha [deg]')
+    subplot(2,1,2)
+    plot(mu_local,phi_opt)
+    grid on
+    title('Inflow angle of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Inflow angle \phi [deg]')
+    
+    figure(11)
+    subplot(2,1,1)
+    plot(mu_local,a_opt)
+    grid on
+    title('Induction factor of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Induction factor [-]')
+    subplot(2,1,2)
+    plot(mu_local,a_tan_opt)
+    grid on
+    title('Axial induction factor of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Axial induction factor [-]')
+    
+    figure(12)
+    subplot(2,1,1)
+    plot(mu_local,C_t_opt)
+    grid on
+    title('Thrust coefficient of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Thrust coefficient [-]')
+    subplot(2,1,2)
+    plot(mu_local,C_q_opt)
+    grid on
+    title('Torque coefficient of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Torque coefficient [-]')
 end
 
 if length(N)>1
-    figure(10)
+    figure(13)
     plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2})
     grid on
     title('Induction factor (\lambda = 8)')

@@ -58,8 +58,8 @@ for i = (1:N)
             a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
             a_tan_calc = torque_a_tan_prelim*(1-a_defined(i))*(1+a_tan_calc_prelim)/(f_1*(1-a_defined(i)*f_1));
         end
-        if abs(a_calc-a_1)<0.01*abs(a_calc) 
-            if abs(a_tan_calc-a_tan_1)<0.01*abs(a_tan_calc)
+        if abs(a_calc-a_1)<0.005*abs(a_calc) 
+            if abs(a_tan_calc-a_tan_1)<0.005*abs(a_tan_calc)
                 run = 0;
             end
         end
