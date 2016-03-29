@@ -1,6 +1,5 @@
 function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence,Prandtl_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
-
 % Initial guesses for a and a_tangential
 if optimise < 1
     a = 0.01*ones(1,N);
@@ -46,8 +45,8 @@ for i = (1:N)
         else
             a_calc_prelim = a_defined(i);
         end
-        f_tip_1 = (2/pi)*acos(exp(-((B/2)*((1-mu_local(i))/mu_local(i))*sqrt(1+((lambda*mu_local(i))^2)/((1-a_calc_prelim)^2)))));
-        f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_local(i)-mu_min)/mu_local(i))*sqrt(1+((lambda*mu_local(i))^2)/((1-a_calc_prelim)^2)))));
+        f_tip_1 = (2/pi)*acos(exp(-((B/2)*((1-mu_current)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
+        f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_current-mu_min)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
         f_1 = f_tip_1*f_root_1;
         if optimise < 1
             a_calc = thrust_a_prelim*((1-a_calc_prelim)^2)/(f_1*(1-a_calc_prelim*f_1));

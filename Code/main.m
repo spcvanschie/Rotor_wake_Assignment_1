@@ -1,6 +1,6 @@
 clear all;
 
-N = [125]; % number of annuli
+N = [200]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -65,16 +65,16 @@ lambda_optimise = 8;
 
 % starting values of optimisation parameters
 maxtwist_min = -10; % root twist angle [deg]
-maxtwist_max = 30; % root twist angle [deg]
+maxtwist_max = 10; % root twist angle [deg]
 maxtwist_samples = 4; % number of samples for maxtwist
 mintwist_min = -10;
 mintwist_max = 10;
 mintwist_samples = 4;
-rootminustip_min = 1; % root chord length minus tip chord [m]
-rootminustip_max = 2; % root chord length minus tip chord [m]
+rootminustip_min = 2; % root chord length minus tip chord [m]
+rootminustip_max = 3; % root chord length minus tip chord [m]
 rootminustip_samples = 2; % number of samples for rootminustip
 tip_min = 1;
-tip_max = 3;
+tip_max = 2;
 tip_samples = 2;
 pitch_min = -5; % min pitch angle [deg]
 pitch_max = 5; % max pitch angle [deg]
