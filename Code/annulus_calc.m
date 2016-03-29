@@ -1,4 +1,4 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence,Prandtl_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 
 % Initial guesses for a and a_tangential
@@ -22,6 +22,7 @@ Thrust_all = zeros(1,N);
 Q_all = zeros(1,N);
 Cq_all = zeros(1,N);
 Thrust_convergence = zeros(10,N);
+Prandtl_all = zeros(1,N);
 for i = (1:N)
     a_1 = a(i);
     a_tan_1 = a_tan(i);
@@ -81,6 +82,7 @@ for i = (1:N)
     phi_all(i) = phi;
     AoA_all(i) = AoA;
     Cx_all(i) = Cx;
+    Prandtl_all(i) = f_1;
 end
 Q_all_real = cumsum(Q_all);
 Cq_all_real = cumsum(Cq_all);

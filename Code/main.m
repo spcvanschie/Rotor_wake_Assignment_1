@@ -1,6 +1,6 @@
 clear all;
 
-N = [150]; % number of annuli
+N = [250]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -11,8 +11,8 @@ pitch = 2; % blade pitch angle [deg]
 twist_par = 14; % twist for each annulus [deg]
 chordlength_par = 3; % chord length for each annulus [m]
 
-baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
+baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
+optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);
@@ -27,6 +27,7 @@ if baseline > 0
     Cq_all = cell(length(N),3);
     Power = ones(1,3);
     Thrust_convergence = cell(length(N),3);
+    Prandtl_all = cell(length(N),3);
     for j = (1:length(N))
         for i = (1:3)
             % calculate interpolation splines for airfoil Cl and Cd
@@ -36,7 +37,7 @@ if baseline > 0
             [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist_par,chordlength_par);
 
             % calculate annulus characteristics, contains iteration loop for induction factors
-            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P,Thrust_converge]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
+            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P,Thrust_converge,Prandtl]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
 
         % writing all obtained variables to the memory    
         mu{j,i} = mu_local;
@@ -49,6 +50,7 @@ if baseline > 0
         Thrust_all{j,i} = Thrust;
         Torque_all{j,i} = Torque;
         Cq_all{j,i} = C_torque;
+        Prandtl_all{j,i} = Prandtl;
         Power(1,i) = P;
         Thrust_convergence{j,i} = Thrust_convergence_history(Thrust_converge,Thrust);
         end
@@ -57,18 +59,18 @@ end
 
 %% Blade optimisation section of code
 pitch = 2; % blade pitch angle [deg]
-lambda = 8;
+lambda_optimise = 8;
 
 % starting values of optimisation parameters
 maxtwist_min = -10; % root twist angle [deg]
 maxtwist_max = 30; % root twist angle [deg]
-maxtwist_samples = 10; % number of samples for maxtwist
+maxtwist_samples = 5; % number of samples for maxtwist
 rootminustip_min = 1; % root chord length minus tip chord [m]
 rootminustip_max = 7; % root chord length minus tip chord [m]
-rootminustip_samples = 10; % number of samples for rootminustip
+rootminustip_samples = 5; % number of samples for rootminustip
 pitch_min = -5; % min pitch angle [deg]
 pitch_max = 5; % max pitch angle [deg]
-pitch_samples = 40; % number of pitch angle samples
+pitch_samples = 20; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
@@ -93,10 +95,10 @@ if optimise > 0
             [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
             
             % calculate geometrical parameters for each annulus
-            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(max(N),pitch,lambda,U_inf,mu_min,twist_par,chordlength_par);
+            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par);
 
             % calculate annulus characteristics, contains iteration loop for induction factors
-            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
+            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
             Power_data(i,j) = P;
             maxtwist_data(i,j) = maxtwist_range(i);
             rootminustip_data(i,j) = rootminustip_range(j);
@@ -117,12 +119,23 @@ if optimise > 0
     Power_pitch = zeros(1,length(pitch_range));
     for i = (1:length(pitch_range))
         % calculate geometrical parameters for each annulus
-        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(max(N),pitch_range(i),lambda,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
+        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
 
         % calculate annulus characteristics, contains iteration loop for induction factors
-        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a);
+        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
         Power_pitch(i) = P;
     end
+    [maxpower_pitch,index] = max(Power_pitch);
+    optdesign_pitch = ind2sub(size(Power_pitch),index);
+    opt_pitch = pitch_range(optdesign_pitch);
+    
+    % calculate geometrical parameters for each annulus
+    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),opt_pitch,lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
+
+    % calculate annulus characteristics, contains iteration loop for induction factors
+    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
+    Maxpower = P;
+    Cp_maxpower = Maxpower/(0.5*rho*(U_inf^3)*pi*(R^2))
 end
 
 
@@ -156,8 +169,17 @@ if baseline > 0
     axis(axis_phi)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Inflow angle \phi [deg]')
-
+    
     figure(2)
+    plot(mu_local,Prandtl_all{length(N),1},mu_local,Prandtl_all{length(N),2},mu_local,Prandtl_all{length(N),3})
+    grid on
+    title('Combined tip and root corrections')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    %axis(axis_C_t)
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Correction factor [-]')
+  
+    figure(3)
     subplot(2,1,1)
     plot(mu_local,a_all{length(N),1},mu_local,a_all{length(N),2},mu_local,a_all{length(N),3})
     grid on
@@ -175,7 +197,7 @@ if baseline > 0
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Induction factor a'' [-]')
 
-    figure(3)
+    figure(4)
     subplot(2,1,1)
     plot(mu_local,C_t_all{length(N),1},mu_local,C_t_all{length(N),2},mu_local,C_t_all{length(N),3})
     grid on
@@ -193,7 +215,7 @@ if baseline > 0
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Normal force coefficient C_{n} [-]')
 
-    figure(4)
+    figure(5)
     subplot(2,1,1)
     plot(mu_local,Torque_all{length(N),1},mu_local,Torque_all{length(N),2},mu_local,Torque_all{length(N),3})
     grid on
@@ -211,7 +233,7 @@ if baseline > 0
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Torque coefficient C_{q} [-]')
 
-    figure(5)
+    figure(6)
     plot(linspace(1,length(Thrust_convergence{length(N),1}),length(Thrust_convergence{length(N),1})),Thrust_convergence{length(N),1},linspace(1,length(Thrust_convergence{length(N),2}),length(Thrust_convergence{length(N),2})),Thrust_convergence{length(N),2},linspace(1,length(Thrust_convergence{length(N),3}),length(Thrust_convergence{length(N),3})),Thrust_convergence{length(N),3})
     grid on
     title('Thrust convergence history')
@@ -220,7 +242,7 @@ if baseline > 0
     xlabel('Iteration number')
     ylabel('Blade thrust [N]')
 
-    figure(6)
+    figure(7)
     subplot(2,1,1)
     alpha_interpolation=linspace(min(alphadata),max(alphadata),500);
     plot(alphadata,Cldata,'o',alpha_interpolation,ppval(Clspline,alpha_interpolation))
@@ -241,13 +263,13 @@ if baseline > 0
 end
 
 if optimise > 0
-    figure(7)
+    figure(8)
     surf(maxtwist_data,rootminustip_data,Power_data)
     xlabel('Maximum twist angle [deg]')
     ylabel('Chord length difference between root and tip [m]')
     zlabel('Power generated by rotor [W]')
     
-    figure(8)
+    figure(9)
     plot(pitch_range,Power_pitch)
     grid on
     title('Power generated for varying pitch angles')
@@ -257,7 +279,7 @@ if optimise > 0
 end
 
 if length(N)>1
-    figure(9)
+    figure(10)
     plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2})
     grid on
     title('Induction factor (\lambda = 8)')
