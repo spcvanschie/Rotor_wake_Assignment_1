@@ -9,7 +9,9 @@ rho = 1.225; % air density [kg/m^3]
 % Optimisation parameters
 pitch = 2; % blade pitch angle [deg]
 twist_par = 14; % twist for each annulus [deg]
+mintwist_par = 0; % tip twist
 chordlength_par = 3; % chord length for each annulus [m]
+tip_par = 1; % tip chord length
 
 baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
 optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
@@ -34,7 +36,7 @@ if baseline > 0
             [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
 
             % calculate geometrical parameters for each annulus
-            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist_par,chordlength_par);
+            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(N(j),pitch,lambda(i),U_inf,mu_min,twist_par,chordlength_par,mintwist_par,tip_par);
 
             % calculate annulus characteristics, contains iteration loop for induction factors
             [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_all,P,Thrust_converge,Prandtl]=annulus_calc(rho,N(j),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda(i),mu_min,0,0);
@@ -64,62 +66,84 @@ lambda_optimise = 8;
 % starting values of optimisation parameters
 maxtwist_min = -10; % root twist angle [deg]
 maxtwist_max = 30; % root twist angle [deg]
-maxtwist_samples = 10; % number of samples for maxtwist
+maxtwist_samples = 4; % number of samples for maxtwist
+mintwist_min = -10;
+mintwist_max = 10;
+mintwist_samples = 4;
 rootminustip_min = 1; % root chord length minus tip chord [m]
-rootminustip_max = 7; % root chord length minus tip chord [m]
-rootminustip_samples = 5; % number of samples for rootminustip
+rootminustip_max = 2; % root chord length minus tip chord [m]
+rootminustip_samples = 2; % number of samples for rootminustip
+tip_min = 1;
+tip_max = 3;
+tip_samples = 2;
 pitch_min = -5; % min pitch angle [deg]
 pitch_max = 5; % max pitch angle [deg]
-pitch_samples = 10; % number of pitch angle samples
+pitch_samples = 5; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
+mintwist_range = linspace(mintwist_min,mintwist_max,mintwist_samples);
 rootminustip_range = linspace(rootminustip_min,rootminustip_max,rootminustip_samples);
+tip_range = linspace(tip_min,tip_max,tip_samples);
 pitch_range = linspace(pitch_min,pitch_max,pitch_samples);
-[maxtwist_mesh,rootminustip_mesh] = meshgrid(maxtwist_range,rootminustip_range);
 
 if optimise > 0
     C_t_design = 0.75;
     a = a_from_C_t(C_t_design)*ones(1,max(N));    
     
-    Power_data = zeros(length(maxtwist_range),length(rootminustip_range));
-    maxtwist_data = zeros(length(maxtwist_range),length(rootminustip_range));
-    rootminustip_data = zeros(length(maxtwist_range),length(rootminustip_range));
+    Power_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
+    maxtwist_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
+    mintwist_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
+    rootminustip_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
+    tip_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
     for i = (1:length(maxtwist_range))
         for j = (1:length(rootminustip_range))
+            for k = (1:length(mintwist_range))
+                for l = (1:length(tip_range))
                 
-            twist_par = maxtwist_range(i); % twist for each annulus [deg]
-            chordlength_par = rootminustip_range(j); % chord length for each annulus [m]
+                    twist_par = maxtwist_range(i); % twist for each annulus [deg]
+                    chordlength_par = rootminustip_range(j); % chord length for each annulus [m]
+                    mintwist_par = mintwist_range(k);
+                    tip_par = tip_range(l);
 
-            % calculate interpolation splines for airfoil Cl and Cd
-            [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
-            
-            % calculate geometrical parameters for each annulus
-            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_opt,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par);
 
-            % calculate annulus characteristics, contains iteration loop for induction factors
-            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,Power_optloop,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_opt,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
-            Power_data(i,j) = Power_optloop;
-            maxtwist_data(i,j) = maxtwist_range(i);
-            rootminustip_data(i,j) = rootminustip_range(j);
+                    % calculate interpolation splines for airfoil Cl and Cd
+                    [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
+
+                    % calculate geometrical parameters for each annulus
+                    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_opt,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par,mintwist_par,tip_par);
+
+                    % calculate annulus characteristics, contains iteration loop for induction factors
+                    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,Power_optloop,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_opt,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
+                    Power_data(i,j,k,l) = Power_optloop;
+                    maxtwist_data(i,j,k,l) = maxtwist_range(i);
+                    rootminustip_data(i,j,k,l) = rootminustip_range(j);
+                    mintwist_data(i,j,k,l) = mintwist_range(k);
+                    tip_data(i,j,k,l) = tip_range(l);
+                end
+            end
         end
     end
     
-    Power_interp = griddata(maxtwist_data,rootminustip_data,Power_data,maxtwist_data,rootminustip_data,'linear');
+    %Power_interp = griddata(maxtwist_data,rootminustip_data,Power_data,maxtwist_data,rootminustip_data,'linear');
     
     % Optimize pitch angle
     [maxpower, index] = max(Power_data(:));
-    [opt_maxtwistindex,opt_rootminustipindex] = ind2sub(size(Power_data),index);
+    [opt_maxtwistindex,opt_rootminustipindex,opt_mintwistindex,opt_tipindex] = ind2sub(size(Power_data),index);
     opt_maxtwist = maxtwist_range(opt_maxtwistindex);
     opt_rootminustip = rootminustip_range(opt_rootminustipindex);
+    opt_mintwist = mintwist_range(opt_mintwistindex);
+    opt_tip = tip_range(opt_tipindex);
     
     twist_par_opt = opt_maxtwist; % twist for each annulus [deg]
     chordlength_par_opt = opt_rootminustip; % chord length for each annulus [m]
+    mintwist_par_opt = opt_mintwist;
+    tip_par_opt = opt_tip;
     
     Power_pitch = zeros(1,length(pitch_range));
     for i = (1:length(pitch_range))
         % calculate geometrical parameters for each annulus
-        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
+        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt,mintwist_par_opt,tip_par_opt);
 
         % calculate annulus characteristics, contains iteration loop for induction factors
         [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
@@ -130,7 +154,7 @@ if optimise > 0
     opt_pitch = pitch_range(optdesign_pitch);
     
     % calculate geometrical parameters for each annulus
-    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),opt_pitch,lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
+    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),opt_pitch,lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt,mintwist_par_opt,tip_par_opt);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
     [W,phi_opt,AoA_opt,Cx,Cy,a_opt,a_tan_opt,Torque,C_q_opt,Thrust,Cp_opt,Maxpower,Thrust_convergence_design,Prandtl]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
@@ -263,11 +287,13 @@ if baseline > 0
 end
 
 if optimise > 0
-    figure(8)
-    surf(maxtwist_data,rootminustip_data,Power_data)
-    xlabel('Maximum twist angle [deg]')
-    ylabel('Chord length difference between root and tip [m]')
-    zlabel('Power generated by rotor [W]')
+    if ndims(Power_data) < 3
+        figure(8)
+        surf(maxtwist_data,rootminustip_data,Power_data)
+        xlabel('Maximum twist angle [deg]')
+        ylabel('Chord length difference between root and tip [m]')
+        zlabel('Power generated by rotor [W]')
+    end
     
     figure(9)
     plot(pitch_range,Power_pitch)
