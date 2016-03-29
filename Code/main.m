@@ -1,6 +1,6 @@
 clear all;
 
-N = [250]; % number of annuli
+N = [125]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -64,13 +64,13 @@ lambda_optimise = 8;
 % starting values of optimisation parameters
 maxtwist_min = -10; % root twist angle [deg]
 maxtwist_max = 30; % root twist angle [deg]
-maxtwist_samples = 5; % number of samples for maxtwist
+maxtwist_samples = 10; % number of samples for maxtwist
 rootminustip_min = 1; % root chord length minus tip chord [m]
 rootminustip_max = 7; % root chord length minus tip chord [m]
 rootminustip_samples = 5; % number of samples for rootminustip
 pitch_min = -5; % min pitch angle [deg]
 pitch_max = 5; % max pitch angle [deg]
-pitch_samples = 20; % number of pitch angle samples
+pitch_samples = 10; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
@@ -95,11 +95,11 @@ if optimise > 0
             [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
             
             % calculate geometrical parameters for each annulus
-            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par);
+            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_opt,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par);
 
             % calculate annulus characteristics, contains iteration loop for induction factors
-            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
-            Power_data(i,j) = P;
+            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,Power_optloop,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_opt,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
+            Power_data(i,j) = Power_optloop;
             maxtwist_data(i,j) = maxtwist_range(i);
             rootminustip_data(i,j) = rootminustip_range(j);
         end
@@ -122,7 +122,7 @@ if optimise > 0
         [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
 
         % calculate annulus characteristics, contains iteration loop for induction factors
-        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
+        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
         Power_pitch(i) = P;
     end
     [maxpower_pitch,index] = max(Power_pitch);
@@ -133,16 +133,9 @@ if optimise > 0
     [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),opt_pitch,lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
-    Maxpower = P;
+    [W,phi_opt,AoA_opt,Cx,Cy,a_opt,a_tan_opt,Torque,C_q_opt,Thrust,Cp_opt,Maxpower,Thrust_convergence_design,Prandtl]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,optimise,a);
     Cp_maxpower = Maxpower/(0.5*rho*(U_inf^3)*pi*(R^2))
-    AoA_opt = AoA;
-    a_opt = a_new;
-    a_tan_opt = a_tan_new;
-    phi_opt = phi;
-    C_t_opt = Glauert(a_new);
-    C_q_opt = C_torque;
-    
+    C_t_opt = Glauert(a_new);    
 end
 
 

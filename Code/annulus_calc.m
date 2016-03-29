@@ -4,14 +4,14 @@ delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 % Initial guesses for a and a_tangential
 if optimise < 1
     a = 0.01*ones(1,N);
-    a_underrelax = 0.1; % induction factor underrelaxation factor
+    a_underrelax = 0.05; % induction factor underrelaxation factor
 else
     a = a_defined;
     a_underrelax = 0; % induction factor underrelaxation factor
 end
 
 a_tan = 0.01*ones(1,N);
-a_tan_underrelax = 0.1; % tangential induction factor underrelaxation factor
+a_tan_underrelax = 0.05; % tangential induction factor underrelaxation factor
 
 a_new = zeros(1,N);
 a_tan_new = zeros(1,N);
@@ -58,8 +58,8 @@ for i = (1:N)
             a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
             a_tan_calc = torque_a_tan_prelim*(1-a_defined(i))*(1+a_tan_calc_prelim)/(f_1*(1-a_defined(i)*f_1));
         end
-        if abs(a_calc-a_1)<0.005*abs(a_calc) 
-            if abs(a_tan_calc-a_tan_1)<0.005*abs(a_tan_calc)
+        if abs(a_calc-a_1)<0.01*abs(a_calc) 
+            if abs(a_tan_calc-a_tan_1)<0.01*abs(a_tan_calc)
                 run = 0;
             end
         end
@@ -73,7 +73,7 @@ for i = (1:N)
     % After the induction factors have been determined we can calculate the forces on each annulus
     
     Thrust_dmu = 0.5*rho*(W^2)*B*chordlength(i)*Cx*R*delta_mu;
-    Torque_dmu = 0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*R*delta_mu;
+    Torque_dmu = (4*pi*rho*U_inf*omega*r(i)*a_tan_calc*(1-a_calc)*(r(i)^2)-0.5*rho*(W^2)*B*chordlength(i)*ppval(Cdspline,AoA)*cosphi*r(i))*R*delta_mu;%0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*R*delta_mu;
     Thrust_all(i) = Thrust_dmu;
     Q_all(i) = Torque_dmu;
     Cq_all(i) = Torque_dmu/(0.5*rho*(U_inf^2)*pi*(R^3));
