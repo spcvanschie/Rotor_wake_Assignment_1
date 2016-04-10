@@ -1,4 +1,4 @@
-function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence,Prandtl_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,optimise,a_defined)
+function [W,phi_all,AoA_all,Cx_all,Cy,a_new,a_tan_new,Q_all,Cq_all,Thrust_all,Cp_all,P,Thrust_convergence,Prandtl_all]=annulus_calc(rho,N,U_inf,r,R,omega,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda,mu_min,mu_min_hub,optimise,a_defined)
 delta_mu = (1-mu_min-(2*(1-mu_min)/N))/N; % width of each annulus [-]
 % Initial guesses for a and a_tangential
 if optimise < 1
@@ -46,7 +46,7 @@ for i = (1:N)
             a_calc_prelim = a_defined(i);
         end
         f_tip_1 = (2/pi)*acos(exp(-((B/2)*((1-mu_current)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
-        f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_current-mu_min)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
+        f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_current-mu_min_hub)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
         f_1 = f_tip_1*f_root_1;
         if optimise < 1
             a_calc = thrust_a_prelim*((1-a_calc_prelim)^2)/(f_1*(1-a_calc_prelim*f_1));
@@ -57,8 +57,8 @@ for i = (1:N)
             a_tan_calc_prelim = torque_a_tan_prelim./(1-torque_a_tan_prelim);
             a_tan_calc = torque_a_tan_prelim*(1-a_defined(i))*(1+a_tan_calc_prelim)/(f_1*(1-a_defined(i)*f_1));
         end
-        if abs(a_calc-a_1)<0.01*abs(a_calc) 
-            if abs(a_tan_calc-a_tan_1)<0.01*abs(a_tan_calc)
+        if abs(a_calc-a_1)<0.005*abs(a_calc) 
+            if abs(a_tan_calc-a_tan_1)<0.005*abs(a_tan_calc)
                 run = 0;
             end
         end
@@ -72,7 +72,7 @@ for i = (1:N)
     % After the induction factors have been determined we can calculate the forces on each annulus
     
     Thrust_dmu = 0.5*rho*(W^2)*B*chordlength(i)*Cx*R*delta_mu;
-    Torque_dmu = (4*pi*rho*U_inf*omega*r(i)*a_tan_calc*(1-a_calc)*(r(i)^2)-0.5*rho*(W^2)*B*chordlength(i)*ppval(Cdspline,AoA)*cosphi*r(i))*R*delta_mu;%0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*R*delta_mu;
+    Torque_dmu = (4*pi*rho*U_inf*omega*(r(i)^3)*a_tan_calc*(1-a_calc)-0.5*rho*(W^2)*B*chordlength(i)*ppval(Cdspline,AoA)*cosphi*r(i))*R*delta_mu;%0.5*rho*(W^2)*B*chordlength(i)*r(i)*Cy*R*delta_mu;
     Thrust_all(i) = Thrust_dmu;
     Q_all(i) = Torque_dmu;
     Cq_all(i) = Torque_dmu/(0.5*rho*(U_inf^2)*pi*(R^3));

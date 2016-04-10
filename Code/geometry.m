@@ -14,7 +14,7 @@ r = mu_local*R; % local annulus radius [m]
 twist = (twist_par-mintwist_par)*(1-mu_local)+mintwist_par; % twist for each annulus [deg]
 chordlength = (chordlength_par-tip_par)*(1-mu_local)+tip_par; % chord length for each annulus [m]
 chordangle = twist+pitch; % chord angle (beta) for each annulus [deg]
-blade_solidity = (B./(2*pi*mu_local)).*chordlength/R; % blade solidity (sigma_r) [-]
+blade_solidity = (B.*chordlength./(2*pi.*r)); % blade solidity (sigma_r) [-]
 % ----------------------------------------------------------
 
 end
