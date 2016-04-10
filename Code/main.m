@@ -67,8 +67,8 @@ pitch = 2; % blade pitch angle [deg]
 lambda_optimise = 8;
 
 % starting values of optimisation parameters
-maxtwist_min = -20; % root twist angle [deg]
-maxtwist_max = 20; % root twist angle [deg]
+maxtwist_min = -10; % root twist angle [deg]
+maxtwist_max = 10; % root twist angle [deg]
 maxtwist_samples = 10; % number of samples for maxtwist
 mintwist_min = 0;
 mintwist_max = 0;
@@ -79,9 +79,9 @@ rootminustip_samples = 2; % number of samples for rootminustip
 tip_min = 1;
 tip_max = 2;
 tip_samples = 2;
-pitch_min = -15; % min pitch angle [deg]
-pitch_max = 15; % max pitch angle [deg]
-pitch_samples = 15; % number of pitch angle samples
+pitch_min = -5; % min pitch angle [deg]
+pitch_max = 5; % max pitch angle [deg]
+pitch_samples = 20; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
@@ -124,7 +124,7 @@ if optimise > 0
                         
                         C_t_actual = mean(Glauert(a_new));
                         C_t_design = C_t_design +C_t_underrelax*(0.75 - C_t_actual);
-                        if abs(mean(Glauert(a_new))-0.75) < 0.01
+                        if abs(mean(Glauert(a_new))-0.75) < 0.001
                             run = 0;
                         end
                     end
@@ -155,11 +155,22 @@ if optimise > 0
     
     Power_pitch = zeros(1,length(pitch_range));
     for i = (1:length(pitch_range))
-        % calculate geometrical parameters for each annulus
-        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt,mintwist_par_opt,tip_par_opt);
+        run = 1;
+        C_t_underrelax = 0.5;
+        C_t_design_pitch = 0.75;
+        while run > 0;
+            % calculate geometrical parameters for each annulus
+            [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),pitch_range(i),lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt,mintwist_par_opt,tip_par_opt);
 
-        % calculate annulus characteristics, contains iteration loop for induction factors
-        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
+            % calculate annulus characteristics, contains iteration loop for induction factors
+            [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,P,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
+            
+            C_t_actual_pitch = mean(Glauert(a_new));
+            C_t_design_pitch = C_t_design_pitch +C_t_underrelax*(0.75 - C_t_actual_pitch);
+            if abs(mean(Glauert(a_new))-0.75) < 0.001
+                run = 0;
+            end
+        end
         Power_pitch(i) = P;
     end
     [maxpower_pitch,index] = max(Power_pitch);
@@ -178,10 +189,10 @@ end
 
 %% Plotting section of code
 % figure axis ranges
-axis_alpha = [0.2 1 -2 15];
+axis_alpha = [0.2 1 -2 25];
 axis_phi = [0.2 1 -2 30];
 axis_a = [0.2 1 0 1];
-axis_a_tan = [0.2 1 0 0.1];
+axis_a_tan = [0.2 1 -0.02 0.08];
 axis_C_t = [0.2 1 0 1.2];
 axis_C_n = [0.2 1 0 1.2];
 axis_C_q = [0.2 1 0 1.5];
@@ -211,7 +222,7 @@ if baseline > 0
     plot(mu_local,Prandtl_all{length(N),1},mu_local,Prandtl_all{length(N),2},mu_local,Prandtl_all{length(N),3})
     grid on
     title('Combined tip and root corrections')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','South')
     %axis(axis_C_t)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Correction factor [-]')
@@ -221,7 +232,7 @@ if baseline > 0
     plot(mu_local,a_all{length(N),1},mu_local,a_all{length(N),2},mu_local,a_all{length(N),3})
     grid on
     title('Induction factor')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','North')
     axis(axis_a)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Induction factor a [-]')
@@ -239,7 +250,7 @@ if baseline > 0
     plot(mu_local,C_t_all{length(N),1},mu_local,C_t_all{length(N),2},mu_local,C_t_all{length(N),3})
     grid on
     title('Thrust coefficient')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','North')
     axis(axis_C_t)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Thrust coefficient C_{T} [-]')
@@ -257,7 +268,7 @@ if baseline > 0
     plot(mu_local,Torque_all{length(N),1},mu_local,Torque_all{length(N),2},mu_local,Torque_all{length(N),3})
     grid on
     title('Torque')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','Northwest')
     %axis(axis_C_t)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Torque [N*m]')
@@ -265,7 +276,7 @@ if baseline > 0
     plot(mu_local,Cq_all{length(N),1},mu_local,Cq_all{length(N),2},mu_local,Cq_all{length(N),3})
     grid on
     title('Torque coefficient')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','Northwest')
     %axis(axis_C_q)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Torque coefficient C_{q} [-]')
@@ -285,7 +296,7 @@ if baseline > 0
     plot(alphadata,Cldata,'o',alpha_interpolation,ppval(Clspline,alpha_interpolation))
     grid on
     title('C_{l} - \alpha data')
-    legend('C_{l}-values','Interpolation data')
+    legend('C_{l}-values','Interpolation data','Location','South')
     axis(axis_Cl)
     xlabel('Angle of attack \alpha [deg]')
     ylabel('C_{l} [-]')
@@ -293,7 +304,7 @@ if baseline > 0
     plot(alphadata,Cddata,'o',alpha_interpolation,ppval(Cdspline,alpha_interpolation))
     grid on
     title('C_{d} - \alpha data')
-    legend('C_{d}-values','Interpolation curve')
+    legend('C_{d}-values','Interpolation curve','Location','North')
     axis(axis_Cd)
     xlabel('Angle of attack \alpha [deg]')
     ylabel('C_{d} [-]')
