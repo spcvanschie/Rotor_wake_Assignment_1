@@ -1,6 +1,6 @@
 clear all;
 
-N = [200]; % number of annuli
+N = [100]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -67,21 +67,21 @@ pitch = 2; % blade pitch angle [deg]
 lambda_optimise = 8;
 
 % starting values of optimisation parameters
-maxtwist_min = -10; % root twist angle [deg]
+maxtwist_min = -20; % root twist angle [deg]
 maxtwist_max = 20; % root twist angle [deg]
-maxtwist_samples = 3; % number of samples for maxtwist
-mintwist_min = -15;
-mintwist_max = 15;
-mintwist_samples = 4;
+maxtwist_samples = 10; % number of samples for maxtwist
+mintwist_min = 0;
+mintwist_max = 0;
+mintwist_samples = 1;
 rootminustip_min = 1; % root chord length minus tip chord [m]
 rootminustip_max = 2; % root chord length minus tip chord [m]
-rootminustip_samples = 3; % number of samples for rootminustip
+rootminustip_samples = 2; % number of samples for rootminustip
 tip_min = 1;
 tip_max = 2;
-tip_samples = 3;
-pitch_min = -10; % min pitch angle [deg]
-pitch_max = 10; % max pitch angle [deg]
-pitch_samples = 5; % number of pitch angle samples
+tip_samples = 2;
+pitch_min = -15; % min pitch angle [deg]
+pitch_max = 15; % max pitch angle [deg]
+pitch_samples = 15; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
@@ -91,8 +91,7 @@ tip_range = linspace(tip_min,tip_max,tip_samples);
 pitch_range = linspace(pitch_min,pitch_max,pitch_samples);
 
 if optimise > 0
-    C_t_design = 0.75;
-    a = a_from_C_t(C_t_design)*ones(1,max(N));    
+    C_t_factor = 1;
     
     Power_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
     maxtwist_data = zeros(length(maxtwist_range),length(rootminustip_range),length(mintwist_range),length(tip_range));
@@ -108,16 +107,27 @@ if optimise > 0
                     chordlength_par = rootminustip_range(j); % chord length for each annulus [m]
                     mintwist_par = mintwist_range(k);
                     tip_par = tip_range(l);
+                    
+                    run = 1;
+                    C_t_underrelax = 0.5;
+                    C_t_design = 0.75;
+                    while run>0;
+                        a = a_from_C_t(C_t_design)*ones(1,max(N));  
+                        % calculate interpolation splines for airfoil Cl and Cd
+                        [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
 
+                        % calculate geometrical parameters for each annulus
+                        [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_opt,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par,mintwist_par,tip_par);
 
-                    % calculate interpolation splines for airfoil Cl and Cd
-                    [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
-
-                    % calculate geometrical parameters for each annulus
-                    [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_opt,blade_solidity]= geometry(max(N),pitch,lambda_optimise,U_inf,mu_min,twist_par,chordlength_par,mintwist_par,tip_par);
-
-                    % calculate annulus characteristics, contains iteration loop for induction factors
-                    [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,Power_optloop,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_opt,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
+                        % calculate annulus characteristics, contains iteration loop for induction factors
+                        [W,phi,AoA,Cx,Cy,a_new,a_tan_new,Torque,C_torque,Thrust,Cp_opt,Power_optloop,Thrust_convergence_design]=annulus_calc(rho,max(N),U_inf,r,R,omega_opt,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
+                        
+                        C_t_actual = mean(Glauert(a_new));
+                        C_t_design = C_t_design +C_t_underrelax*(0.75 - C_t_actual);
+                        if abs(mean(Glauert(a_new))-0.75) < 0.01
+                            run = 0;
+                        end
+                    end
                     Power_data(i,j,k,l) = Power_optloop;
                     maxtwist_data(i,j,k,l) = maxtwist_range(i);
                     rootminustip_data(i,j,k,l) = rootminustip_range(j);
