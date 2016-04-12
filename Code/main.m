@@ -1,6 +1,6 @@
 clear all;
 
-N = [100]; % number of annuli
+N = [100,300,500]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -14,8 +14,8 @@ mintwist_par = 0; % tip twist
 chordlength_par = 3; % chord length for each annulus [m]
 tip_par = 1; % tip chord length
 
-baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
+baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
+optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);
@@ -63,12 +63,12 @@ if baseline > 0
 end
 
 %% Blade optimisation section of code
-pitch = 2; % blade pitch angle [deg]
+pitch = 0; % blade pitch angle [deg]
 lambda_optimise = 8;
 
 % starting values of optimisation parameters
-maxtwist_min = -10; % root twist angle [deg]
-maxtwist_max = 10; % root twist angle [deg]
+maxtwist_min = -15; % root twist angle [deg]
+maxtwist_max = 15; % root twist angle [deg]
 maxtwist_samples = 10; % number of samples for maxtwist
 mintwist_min = 0;
 mintwist_max = 0;
@@ -189,7 +189,7 @@ end
 
 %% Plotting section of code
 % figure axis ranges
-axis_alpha = [0.2 1 -2 25];
+axis_alpha = [0.2 1 -2 20];
 axis_phi = [0.2 1 -2 30];
 axis_a = [0.2 1 0 1];
 axis_a_tan = [0.2 1 -0.02 0.08];
