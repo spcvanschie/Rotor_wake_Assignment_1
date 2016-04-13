@@ -11,9 +11,9 @@ r = mu_local*R; % local annulus radius [m]
 
 % adjustable design parameters for second part of assignment
 % ----------------------------------------------------------
-twist = (twist_par-mintwist_par)*(1-mu_local)+mintwist_par; % twist for each annulus [deg]
-chordlength = (chordlength_par-tip_par)*(1-mu_local)+tip_par; % chord length for each annulus [m]
-chordangle = twist+pitch; % chord angle (beta) for each annulus [deg]
+twist = (twist_par-mintwist_par)*(1-mu_local.)+mintwist_par; % twist for each annulus [deg]
+chordlength = (chordlength_par-tip_par)*(1-mu_local.)+tip_par; % chord length for each annulus [m]
+chordangle = twist.+pitch; % chord angle (beta) for each annulus [deg]
 blade_solidity = (B.*chordlength./(2*pi.*r)); % blade solidity (sigma_r) [-]
 % ----------------------------------------------------------
 

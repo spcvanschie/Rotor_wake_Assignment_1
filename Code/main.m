@@ -1,6 +1,6 @@
-clear all;
+clear variables;
 
-N = [100,300,500]; % number of annuli
+N = [150]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
 U_inf = 10; % freestream velocity [m/s]
 mu_min = 0.2; % spanwise start of blade [-]
@@ -14,8 +14,8 @@ mintwist_par = 0; % tip twist
 chordlength_par = 3; % chord length for each annulus [m]
 tip_par = 1; % tip chord length
 
-baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
+baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
+optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);
@@ -28,10 +28,13 @@ if baseline > 0
     Thrust_all = cell(length(N),3);
     Torque_all = cell(length(N),3);
     Cq_all = cell(length(N),3);
-    Power_baseline = ones(1,3);
+    Power_baseline = cell(length(N),3);
     Cp_baseline = ones(1,3);
     Thrust_convergence = cell(length(N),3);
     Prandtl_all = cell(length(N),3);
+    if length(N)> 1
+        Power_plot = ones(1,length(N))
+    end
     for j = (1:length(N))
         for i = (1:3)
             % calculate interpolation splines for airfoil Cl and Cd
@@ -55,9 +58,14 @@ if baseline > 0
         Torque_all{j,i} = Torque;
         Cq_all{j,i} = C_torque;
         Prandtl_all{j,i} = Prandtl;
-        Power_baseline(1,i) = P;
+        Power_baseline{j,i} = P;
         Cp_baseline(1,i) = P/(0.5*rho*(U_inf^3)*pi*R*R);
         Thrust_convergence{j,i} = Thrust_convergence_history(Thrust_converge,Thrust);
+        if length(N) > 1
+            if i == 2
+                Power_plot(j) = P;
+            end
+        end
         end
     end
 end
@@ -69,19 +77,19 @@ lambda_optimise = 8;
 % starting values of optimisation parameters
 maxtwist_min = -15; % root twist angle [deg]
 maxtwist_max = 15; % root twist angle [deg]
-maxtwist_samples = 10; % number of samples for maxtwist
+maxtwist_samples = 20; % number of samples for maxtwist
 mintwist_min = 0;
 mintwist_max = 0;
 mintwist_samples = 1;
 rootminustip_min = 1; % root chord length minus tip chord [m]
 rootminustip_max = 2; % root chord length minus tip chord [m]
-rootminustip_samples = 2; % number of samples for rootminustip
+rootminustip_samples = 4; % number of samples for rootminustip
 tip_min = 1;
 tip_max = 2;
-tip_samples = 2;
+tip_samples = 4;
 pitch_min = -5; % min pitch angle [deg]
 pitch_max = 5; % max pitch angle [deg]
-pitch_samples = 20; % number of pitch angle samples
+pitch_samples = 50; % number of pitch angle samples
 
 
 maxtwist_range = linspace(maxtwist_min,maxtwist_max,maxtwist_samples);
@@ -181,7 +189,7 @@ if optimise > 0
     [r,R,B,mu_min,mu_local,twist,chordlength,chordangle,omega_pitch,blade_solidity]= geometry(max(N),opt_pitch,lambda_optimise,U_inf,mu_min,twist_par_opt,chordlength_par_opt,mintwist_par_opt,tip_par_opt);
 
     % calculate annulus characteristics, contains iteration loop for induction factors
-    [W,phi_opt,AoA_opt,Cx,Cy,a_opt,a_tan_opt,Torque,C_q_opt,Thrust,Cp_opt,Maxpower,Thrust_convergence_design,Prandtl]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
+    [W,phi_opt,AoA_opt,Cx_opt,Cy_opt,a_opt,a_tan_opt,Torque_opt,C_q_opt,Thrust,Cp_opt,Maxpower,Thrust_convergence_design,Prandtl]=annulus_calc(rho,max(N),U_inf,r,R,omega_pitch,chordlength,chordangle,Clspline,Cdspline,blade_solidity,B,mu_local,lambda_optimise,mu_min,mu_min_hub,optimise,a);
     Cp_maxpower = Maxpower/(0.5*rho*(U_inf^3)*pi*(R^2))
     C_t_opt = Glauert(a_new);    
 end
@@ -198,6 +206,7 @@ axis_C_n = [0.2 1 0 1.2];
 axis_C_q = [0.2 1 0 1.5];
 axis_Cl = [-16 30 -1 1.5];
 axis_Cd = [-16 30 0 0.7];
+axis_N = [0.2 1 0.1 0.6];
 
 if baseline > 0
     figure(1)
@@ -231,11 +240,11 @@ if baseline > 0
     subplot(2,1,1)
     plot(mu_local,a_all{length(N),1},mu_local,a_all{length(N),2},mu_local,a_all{length(N),3})
     grid on
-    title('Induction factor')
+    title('Axial induction factor')
     legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','North')
     axis(axis_a)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Induction factor a [-]')
+    ylabel('Axial induction factor a [-]')
     subplot(2,1,2)
     plot(mu_local,a_tan_all{length(N),1},mu_local,a_tan_all{length(N),2},mu_local,a_tan_all{length(N),3})
     grid on
@@ -243,7 +252,7 @@ if baseline > 0
     legend('\lambda = 6','\lambda = 8','\lambda = 10')
     axis(axis_a_tan)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Induction factor a'' [-]')
+    ylabel('Tangential nduction factor a'' [-]')
 
     figure(4)
     subplot(2,1,1)
@@ -296,7 +305,7 @@ if baseline > 0
     plot(alphadata,Cldata,'o',alpha_interpolation,ppval(Clspline,alpha_interpolation))
     grid on
     title('C_{l} - \alpha data')
-    legend('C_{l}-values','Interpolation data','Location','South')
+    legend('C_{l}-values','Interpolation curve','Location','South')
     axis(axis_Cl)
     xlabel('Angle of attack \alpha [deg]')
     ylabel('C_{l} [-]')
@@ -345,38 +354,77 @@ if optimise > 0
     subplot(2,1,1)
     plot(mu_local,a_opt)
     grid on
-    title('Induction factor of optimum rotor')
+    title('Axial nduction factor of optimum rotor')
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Induction factor [-]')
+    ylabel('Axial induction factor [-]')
     subplot(2,1,2)
     plot(mu_local,a_tan_opt)
     grid on
-    title('Axial induction factor of optimum rotor')
+    title('Tangential induction factor of optimum rotor')
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Axial induction factor [-]')
+    ylabel('Tangential induction factor [-]')
     
     figure(12)
     subplot(2,1,1)
-    plot(mu_local,C_t_opt)
+    plot(mu_local,C_t_opt,[0.2 1],[0.75 0.75],'--')
     grid on
     title('Thrust coefficient of optimum rotor')
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Thrust coefficient [-]')
+    ylabel('Thrust coefficient C_{T} [-]')
+    subplot(2,1,2)
+    plot(mu_local,Cx)
+    grid on
+    title('Normal force coefficient of optimum rotor')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Normal force coefficient C_{x} [-]')
+    
+    figure(17)
+    subplot(2,1,1)
+    plot(mu_local,Torque)
+    grid on
+    title('Torque generated by optimum rotor')
+    axis([0.2 1 -1*10^5 2*10^6])
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Torque [N*m]')
     subplot(2,1,2)
     plot(mu_local,C_q_opt)
     grid on
     title('Torque coefficient of optimum rotor')
+    axis([0.2 1 -0.01 0.1])
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-    ylabel('Torque coefficient [-]')
+    ylabel('Torque coefficient C_{q} [-]')
 end
 
 if length(N)>1
     figure(13)
-    plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2})
+    plot(mu{1,2},a_all{1,2},mu{2,2},a_all{2,2},mu{3,2},a_all{3,2},mu{4,2},a_all{4,2},mu{5,2},a_all{5,2},mu{6,2},a_all{6,2},mu{7,2},a_all{7,2})
     grid on
     title('Induction factor (\lambda = 8)')
-    legend('N = 100','N = 300','N = 500')
-    axis(axis_a)
+    legend('N = 50','N = 75','N = 100','N = 125','N = 150','N = 175','N = 200','Location','North')
+    axis(axis_N)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Induction factor a [-]')
+    
+    figure(14)
+    plot(N,Power_plot,'+')
+    grid on
+    title('Power generated (\lambda = 8)')
+    %legend('N = 50','N = 75','N = 100','N = 125','N = 150','N = 175','N = 200','Location','North')
+    %axis(axis_N)
+    xlabel('Number of annuli [-]','Interpreter','LaTex')
+    ylabel('Power [W]')
 end
+
+figure(15)
+plot(mu_local,linspace(opt_maxtwist,0,length(mu_local)))
+grid on
+title('Local twist angle')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Twist angle \beta [deg]')
+
+figure(16)
+plot(mu_local,linspace(opt_rootminustip*0.8 + opt_tip,opt_rootminustip,length(mu_local)))
+grid on
+title('Local chord length')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Chord length [m]')
