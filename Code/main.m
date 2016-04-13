@@ -1,4 +1,4 @@
-clear variables;
+%clear variables;
 
 N = [150]; % number of annuli
 lambda = [6,8,10]; % tip speed ratio [-]
@@ -14,8 +14,8 @@ mintwist_par = 0; % tip twist
 chordlength_par = 3; % chord length for each annulus [m]
 tip_par = 1; % tip chord length
 
-baseline = 0; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
+baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
+optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);
@@ -197,10 +197,10 @@ end
 
 %% Plotting section of code
 % figure axis ranges
-axis_alpha = [0.2 1 -2 20];
+axis_alpha = [0.2 1 -2 15];
 axis_phi = [0.2 1 -2 30];
-axis_a = [0.2 1 0 1];
-axis_a_tan = [0.2 1 -0.02 0.08];
+axis_a = [0.2 1 0 0.6];
+axis_a_tan = [0.2 1 -0.01 0.05];
 axis_C_t = [0.2 1 0 1.2];
 axis_C_n = [0.2 1 0 1.2];
 axis_C_q = [0.2 1 0 1.5];
@@ -211,18 +211,18 @@ axis_N = [0.2 1 0.1 0.6];
 if baseline > 0
     figure(1)
     subplot(2,1,1)
-    plot(mu_local,AoA_all{length(N),1},mu_local,AoA_all{length(N),2},mu_local,AoA_all{length(N),3})
+    plot(mu_local,AoA_all{length(N),2},mu_local,AoA_all_tiproot{length(N),2})
     grid on
-    title('Angle of Attack')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    title('Angle of Attack (\lambda = 8)')
+    legend('Without correction','With correction')
     axis(axis_alpha)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Angle of Attack \alpha [deg]')
     subplot(2,1,2)
-    plot(mu_local,phi_all{length(N),1},mu_local,phi_all{length(N),2},mu_local,phi_all{length(N),3})
+    plot(mu_local,phi_all{length(N),2},mu_local,phi_all_tiproot{length(N),2})
     grid on
-    title('Inflow angle')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    title('Inflow angle (\lambda = 8)')
+    legend('Without correction','With correction')
     axis(axis_phi)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Inflow angle \phi [deg]')
@@ -238,18 +238,18 @@ if baseline > 0
   
     figure(3)
     subplot(2,1,1)
-    plot(mu_local,a_all{length(N),1},mu_local,a_all{length(N),2},mu_local,a_all{length(N),3})
+    plot(mu_local,a_all{length(N),2},mu_local,a_all_tiproot{length(N),2})
     grid on
-    title('Axial induction factor')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10','Location','North')
+    title('Axial induction factor (\lambda = 8)')
+    legend('Without correction','With correction')
     axis(axis_a)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Axial induction factor a [-]')
     subplot(2,1,2)
-    plot(mu_local,a_tan_all{length(N),1},mu_local,a_tan_all{length(N),2},mu_local,a_tan_all{length(N),3})
+    plot(mu_local,a_tan_all{length(N),2},mu_local,a_tan_all_tiproot{length(N),2})
     grid on
-    title('Tangential induction factor')
-    legend('\lambda = 6','\lambda = 8','\lambda = 10')
+    title('Tangential induction factor (\lambda = 8)')
+    legend('Without correction','With correction')
     axis(axis_a_tan)
     xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
     ylabel('Tangential nduction factor a'' [-]')
@@ -415,16 +415,18 @@ if length(N)>1
     ylabel('Power [W]')
 end
 
-figure(15)
-plot(mu_local,linspace(opt_maxtwist,0,length(mu_local)))
-grid on
-title('Local twist angle')
-xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Twist angle \beta [deg]')
+if optimise > 0
+    figure(15)
+    plot(mu_local,linspace(opt_maxtwist,0,length(mu_local)))
+    grid on
+    title('Local twist angle')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Twist angle \beta [deg]')
 
-figure(16)
-plot(mu_local,linspace(opt_rootminustip*0.8 + opt_tip,opt_rootminustip,length(mu_local)))
-grid on
-title('Local chord length')
-xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Chord length [m]')
+    figure(16)
+    plot(mu_local,linspace(opt_rootminustip*0.8 + opt_tip,opt_rootminustip,length(mu_local)))
+    grid on
+    title('Local chord length')
+    xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+    ylabel('Chord length [m]')
+end
