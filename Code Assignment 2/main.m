@@ -9,6 +9,7 @@ roottwist = 1; % root twist angle [deg]
 tiptwist = 0; % tip twist angle [deg]
 u_inf = [10;0;0]; % freestream velocity vector [m/s]
 tsr = 8; % Tip Speed Ratio [-]
+omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
 n = 9; % number of collocation points [-]
@@ -46,6 +47,10 @@ TE = [TE_x; vort_end_y; vort_end_z];
 %% Calculation of initial collocation point normal vectors
 normalvect = normalvect(alpha,rotation_angle);
 
-%% Calculating influence coefficient matrix & freestream influence vector
+%% Calculating initial influence coefficient matrix & freestream and blade rotation influence vector
 A_ind = induction_factors(normalvect,cp_init,vort_end_init,TE,eps);
 Q_inf = freestreamvect(normalvect,u_inf);
+Q_rot = rotationvect(omega,rotation_angle,cp_spanwise,normalvect);
+
+%% Solving the linear system of equations for the vortex circulations
+circulations = (-Q_inf - Q_rot)\A_ind;
