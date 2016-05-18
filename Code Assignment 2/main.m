@@ -13,10 +13,10 @@ omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
 n = 20; % number of collocation points [-]
-dt = 0.1; % time step [s]
+dt = 10; % time step [s]
 timestep = 0; % initial time step number [-]
 rotation_angle = 0; % initial azimuthal blade rotation angle [rad], defined as 0 along the y-axis
-eps = 10^-6; % vortex core epsilon
+eps = 10^-8; % vortex core epsilon
 
 %% Calculation of initial collocation point coordinates
 cp_init_y = cosspace(blade_root,span,n+2,0);
@@ -49,19 +49,23 @@ TE = [TE_x; vort_end_y; vort_end_z];
 %% Calculation of initial collocation point normal vectors
 normalvectors = normalvect(alpha,rotation_angle);
 
+u_inf_repmat = repmat(u_inf,1,length(normalvectors(1,:)));
+
 %% Calculating initial influence coefficient matrix & freestream and blade rotation influence vector
 A_ind_init = induction_factors(normalvectors,cp_init,vort_end_init,TE,eps);
 u_rotor = rotationvect(omega,rotation_angle,cp_spanwise,normalvectors);
-Q_inf = freestreamvect(normalvectors,u_inf,u_rotor);
+Q_inf = freestreamvect(normalvectors,u_inf_repmat,u_rotor);
 %Q_rot = rotationvect(omega,rotation_angle,cp_spanwise,normalvectors);
 
 %% Solving the initial linear system of equations for the vortex circulations
 circulations = -A_ind_init\(Q_inf);
 
 %% Time marching section for t > 0
-running = 1;
 
-while running > 0;
+max_timestep = 50;
+
+Q_ind_start = zeros(length(chord),max_timestep);
+for timestep = 0:max_timestep
     cp_coords_blade = bladerotation(rotation_angle,cp_spanwise,cp_init);
     vort_end_blade = bladerotation(rotation_angle,vort_end_spanwise,vort_end_init);
     TE_blade = bladerotation(rotation_angle,vort_end_spanwise,TE);
@@ -70,12 +74,12 @@ while running > 0;
     
     
     A_ind_upd = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps);
-    Q_inf = freestreamvect(normalvectors_upd,u_inf,u_rotor_upd);
+    Q_inf = freestreamvect(normalvectors_upd,u_inf_repmat,u_rotor_upd);
     
     if timestep < 1
         Q_ind = zeros(length(cp_spanwise),1);
     else
-        Q_ind = wakeinduction(cp_coords_blade,normalvectors_upd,TE_convected,TE_blade,circulation_history,eps);
+        [Q_ind, Q_coefs] = wakeinduction(Q_ind_start,cp_coords_blade,normalvectors_upd,TE_convected,TE_blade,circulation_history,eps);
     end
     
     circulation_blade = -A_ind_upd\(Q_inf + Q_ind);
@@ -89,8 +93,13 @@ while running > 0;
         TE_convected = TE_convected + repmat(dt*u_inf,1,length(TE_blade(1,:)),timestep + 1);
         circulation_history = cat(3,circulation_history,circulation_blade);
     end
+    %% Timestep break
     
-    timestep = timestep + 1;
-    time = dt*timestep
-    rotation_angle = omega*time/(2*pi); % blade rotation angle w.r.t. positive y-axis [rad]
+    time = dt*timestep;
+    rotation_angle = omega*time; % blade rotation angle w.r.t. positive y-axis [rad]
 end
+
+%% Plotting module
+figure(1)
+grid on
+plot(cp_spanwise,circulation_history(:,1,1),cp_spanwise,circulation_history(:,1,3),cp_spanwise,circulation_history(:,1,5),cp_spanwise,circulation_history(:,1,7),cp_spanwise,circulation_history(:,1,10),cp_spanwise,circulation_history(:,1,14),cp_spanwise,circulation_history(:,1,18),cp_spanwise,circulation_history(:,1,22),cp_spanwise,circulation_history(:,1,26),cp_spanwise,circulation_history(:,1,30),cp_spanwise,circulation_history(:,1,35),cp_spanwise,circulation_history(:,1,40),cp_spanwise,circulation_history(:,1,45),cp_spanwise,circulation_history(:,1,50))
