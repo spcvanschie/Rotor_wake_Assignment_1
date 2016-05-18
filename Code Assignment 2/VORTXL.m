@@ -15,7 +15,7 @@ r1 = norm(x_cp-x_a);
 r2 = norm(x_cp-x_b);
 
 if r1<=eps || r2<=eps || norm(r1_cross_r2)^2<=eps
-   u_ind = [0; 0; 0]; 
+   u_ind = [0; 0; 0]
    return
 end
 
