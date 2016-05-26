@@ -1,5 +1,6 @@
 clear variables;
 %% Rotor & flow parameter declaration
+rho = 1.225; % air density [kg/m3]
 span = 50; % span of the rotor blade [m]
 blade_root = 0.2*span; % location of blade root [m]
 rootchord = 4; % root chord length (at mu = 0) [m]
@@ -12,8 +13,8 @@ tsr = 8; % Tip Speed Ratio [-]
 omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
-n = 20; % number of collocation points [-]
-dt = 10; % time step [s]
+n = 80; % number of collocation points [-]
+dt = 0.01; % time step [s]
 timestep = 0; % initial time step number [-]
 rotation_angle = 0; % initial azimuthal blade rotation angle [rad], defined as 0 along the y-axis
 eps = 10^-8; % vortex core epsilon
@@ -52,7 +53,7 @@ normalvectors = normalvect(alpha,rotation_angle);
 u_inf_repmat = repmat(u_inf,1,length(normalvectors(1,:)));
 
 %% Calculating initial influence coefficient matrix & freestream and blade rotation influence vector
-A_ind_init = induction_factors(normalvectors,cp_init,vort_end_init,TE,eps);
+A_ind_init = induction_factors(normalvectors,cp_init,vort_end_init,TE,eps,0);
 u_rotor = rotationvect(omega,rotation_angle,cp_spanwise,normalvectors);
 Q_inf = freestreamvect(normalvectors,u_inf_repmat,u_rotor);
 %Q_rot = rotationvect(omega,rotation_angle,cp_spanwise,normalvectors);
@@ -62,7 +63,7 @@ circulations = -A_ind_init\(Q_inf);
 
 %% Time marching section for t > 0
 
-max_timestep = 50;
+max_timestep = 40;
 
 Q_ind_start = zeros(length(chord),max_timestep);
 for timestep = 0:max_timestep
@@ -73,7 +74,7 @@ for timestep = 0:max_timestep
     u_rotor_upd = rotationvect(omega,rotation_angle,cp_spanwise,normalvectors_upd);
     
     
-    A_ind_upd = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps);
+    A_ind_upd = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,0);
     Q_inf = freestreamvect(normalvectors_upd,u_inf_repmat,u_rotor_upd);
     
     if timestep < 1
@@ -83,6 +84,11 @@ for timestep = 0:max_timestep
     end
     
     circulation_blade = -A_ind_upd\(Q_inf + Q_ind);
+%     for i = 1:length(circulation_blade);
+%         if circulation_blade(i) <= 0;
+%             circulation_blade(i) = 0;
+%         end
+%     end
     
     if timestep < 1
         TE_convected = TE_blade;
@@ -99,7 +105,11 @@ for timestep = 0:max_timestep
     rotation_angle = omega*time; % blade rotation angle w.r.t. positive y-axis [rad]
 end
 
+%% Calculating several forces & coefficients for the now-converged flow over the rotor blade
+B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
+[C_L,C_D] = aero_coefficients(rho,chord,u_rotor_upd,circulation_blade,B_ind);
+
 %% Plotting module
 figure(1)
 grid on
-plot(cp_spanwise,circulation_history(:,1,1),cp_spanwise,circulation_history(:,1,3),cp_spanwise,circulation_history(:,1,5),cp_spanwise,circulation_history(:,1,7),cp_spanwise,circulation_history(:,1,10),cp_spanwise,circulation_history(:,1,14),cp_spanwise,circulation_history(:,1,18),cp_spanwise,circulation_history(:,1,22),cp_spanwise,circulation_history(:,1,26),cp_spanwise,circulation_history(:,1,30),cp_spanwise,circulation_history(:,1,35),cp_spanwise,circulation_history(:,1,40),cp_spanwise,circulation_history(:,1,45),cp_spanwise,circulation_history(:,1,50))
+plot(cp_spanwise,circulation_history(:,1,1),cp_spanwise,circulation_history(:,1,3),cp_spanwise,circulation_history(:,1,5),cp_spanwise,circulation_history(:,1,7),cp_spanwise,circulation_history(:,1,10),cp_spanwise,circulation_history(:,1,14),cp_spanwise,circulation_history(:,1,18),cp_spanwise,circulation_history(:,1,22),cp_spanwise,circulation_history(:,1,26),cp_spanwise,circulation_history(:,1,30),cp_spanwise,circulation_history(:,1,35),cp_spanwise,circulation_history(:,1,40));%,cp_spanwise,circulation_history(:,1,45),cp_spanwise,circulation_history(:,1,50))
