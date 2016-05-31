@@ -33,6 +33,6 @@ for i = 1:length(cp_coords(1,:))
             end
         end
     end
-    Q_induced(i,1) = sum(sum(Q_ind,2));
+    Q_induced(i,1) = sum(sum(Q_ind));
 end
 end

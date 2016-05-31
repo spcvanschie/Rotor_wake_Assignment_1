@@ -1,6 +1,8 @@
 clear variables;
 %close all;
 %% Rotor & flow parameter declaration
+[Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
+N = 3; % number of rotor blades
 rho = 1.225; % air density [kg/m3]
 span = 50; % span of the rotor blade [m]
 blade_root = 0.2*span; % location of blade root [m]
@@ -14,11 +16,11 @@ tsr = 8; % Tip Speed Ratio [-]
 omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
-n = 40; % number of collocation points [-]
-dt = 0.05; % time step [s]
+n = 80; % number of collocation points [-]
+dt = 0.01; % time step [s]
 timestep = 0; % initial time step number [-]
 rotation_angle = 0; % initial azimuthal blade rotation angle [rad], defined as 0 along the y-axis
-eps = 10^-6; % vortex core epsilon
+eps = 10^-2; % vortex core epsilon [m]
 
 %% Calculation of initial collocation point coordinates
 cp_init_y = cosspace(blade_root,span,n+2,0);
@@ -41,7 +43,7 @@ surface_area = surfarea(chord,vort_end_y);
 cp_spanwise = cp_init_y; % radial position of every collocation point
 
 %% Adjustment of collocation point x-coordinates and trailing edge vortex corners
-cp_init_x = 0.75*chord;
+cp_init_x = 0.75.*chord;
 cp_init = [cp_init_x; cp_init_y; cp_init_z];
 
 vort_end_x = 0.25*chordlength(span,rootchord,tipchord,vort_end_y); % the vortex elements are located in the yz-plane
@@ -68,7 +70,7 @@ circulations = -A_ind_init\(Q_inf_init);
 
 max_timestep = 100;
 
-Q_ind_start = zeros(length(chord),max_timestep);
+Q_ind_start = zeros(length(chord),max_timestep-1);
 %% Start of time marching
 for timestep = 1:max_timestep
     %% Iteration loop
@@ -112,7 +114,7 @@ end
 
 %% Calculating several forces & coefficients for the now-converged flow over the rotor blade
 B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
-[dL,C_L,dD_i,C_D_i,alpha_i,C_N,C_T,w_ind,u_magnitude] = aero_coefficients(rho,chord,surface_area,u_rotor_upd,circulation_blade,B_ind);
+[dL,C_L,dD_i,C_D_i,alpha_i,C_N,C_T,w_ind,u_magnitude] = aero_coefficients(rho,chord,surface_area,u_rotor_upd,circulation_blade,B_ind,alpha,Clspline,Cdspline);
 
 %% Remarks on convergence:
 % 1) The circulation curve becomes smoother when less elements are used. I
@@ -156,10 +158,16 @@ figure(6)
 grid on
 plot(cp_spanwise,C_L)
 xlabel('Radial position [m]')
-ylabel('Lift coefficient C_L [deg]')
+ylabel('Lift coefficient C_L [-]')
 
 figure(7)
 grid on
 plot(cp_spanwise,C_D_i)
 xlabel('Radial position [m]')
-ylabel('Induced drag coefficient C_D_i [deg]')
+ylabel('Induced drag coefficient C_D_i [-]')
+
+figure(8)
+grid on
+plot(cp_spanwise,w_ind)
+xlabel('Radial position [m]')
+ylabel('Induced velocity in z-direction [m/s]')
