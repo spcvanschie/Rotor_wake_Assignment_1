@@ -11,7 +11,8 @@ dD_i = zeros(length(circulation),1);
 C_D_i = zeros(length(circulation),1);
 alpha_i = zeros(length(circulation),1);
 alpha_eff = zeros(length(circulation),1);
-
+C_N = zeros(length(circulation),1);
+C_T = zeros(length(circulation),1);
 for i = 1:length(circulation)
     alpha_i(i) = -rad2deg((w_ind(i)/u_magnitude(i)));
     alpha_eff(i) = -alpha_i(i) - alpha(i);
@@ -19,7 +20,8 @@ for i = 1:length(circulation)
     C_L(i) = ppval(Clspline,alpha_eff(i)); %circulation(i)/(0.5*chordlength(i)*u_magnitude(i));
     dD_i(i) = -rho*w_ind(i)*circulation(i)*(surface_area(i)/chordlength(i));
     C_D_i(i) = ppval(Cdspline,alpha_eff(i)); %-circulation(i)/(0.5*chordlength(i)*w_ind(i));
+    C_N(i) = cos(deg2rad(alpha(i)))*C_L(i) + sin(deg2rad(alpha(i)))*C_D_i(i);
+    C_T(i) = -sin(deg2rad(alpha(i)))*C_L(i) + cos(deg2rad(alpha(i)))*C_D_i(i);
+
 end
-C_N = cos(deg2rad(alpha_i)).*C_L + sin(deg2rad(alpha_i)).*C_D_i;
-C_T = -sin(deg2rad(alpha_i)).*C_L + cos(deg2rad(alpha_i)).*C_D_i;
 end

@@ -144,7 +144,7 @@ ylabel('Normal force coefficient C_N')
 
 figure(4)
 grid on
-plot(cp_spanwise,C_T)
+plot(cp_spanwise,3*C_T)
 xlabel('Radial position [m]')
 ylabel('Thrust force coefficient C_T')
 
