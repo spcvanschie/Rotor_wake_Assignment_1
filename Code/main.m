@@ -15,7 +15,7 @@ chordlength_par = 3; % chord length for each annulus [m]
 tip_par = 1; % tip chord length
 
 baseline = 1; % bogey stagement to either use or ignore the baseline studycase part of the code
-optimise = 0; % bogey statement to either use or ignore the optimisation part of the code
+optimise = 1; % bogey statement to either use or ignore the optimisation part of the code
 
 if baseline > 0
     mu=cell(length(N),3);

@@ -1,5 +1,5 @@
 clear variables;
-%close all;
+close all;
 %% Rotor & flow parameter declaration
 [Clspline,Cdspline,alphadata,Cldata,Cddata]=airfoil_liftdrag();
 N = 3; % number of rotor blades
@@ -9,18 +9,19 @@ blade_root = 0.2*span; % location of blade root [m]
 rootchord = 4; % root chord length (at mu = 0) [m]
 tipchord = 2; % tip chord length [m]
 bladepitch = -1.5; % blade pitch angle [deg]
-roottwist = 14; % root twist angle [deg]
+roottwist = 1; % root twist angle [deg]
 tiptwist = 0; % tip twist angle [deg]
 u_inf = [10;0;0]; % freestream velocity vector [m/s]
 tsr = 8; % Tip Speed Ratio [-]
 omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
-n = 40; % number of collocation points [-]
+n = 80; % number of collocation points [-]
 dt = 0.01; % time step [s]
+max_timestep = 200; % number of time steps [-]
 timestep = 0; % initial time step number [-]
 rotation_angle = 0; % initial azimuthal blade rotation angle [rad], defined as 0 along the y-axis
-eps = 10^-2; % vortex core epsilon [m]
+eps = 10^-6; % vortex core epsilon [m]
 
 %% Calculation of initial collocation point coordinates
 cp_init_y = cosspace(blade_root,span,n+2,0);
@@ -70,8 +71,6 @@ circulations = -A_ind_init\(Q_inf_init);
 
 %% Time marching section for t > 0
 
-max_timestep = 200;
-
 Thrust_convergence = zeros(max_timestep,1);
 Q_ind_start = zeros(length(chord),max_timestep-1);
 %% Start of time marching
@@ -103,16 +102,16 @@ for timestep = 1:max_timestep
     
     if timestep < 2
         TE_convected = TE_blade;
-        TE_convected = TE_convected + repmat(dt*u_inf,1,length(TE_blade(1,:)),timestep);
+        TE_convected = TE_convected + repmat(dt*1.2*u_inf,1,length(TE_blade(1,:)),timestep);
         circulation_history = circulation_blade;
     else
         TE_convected = cat(3,TE_convected,TE_blade);
-        TE_convected = TE_convected + repmat(dt*u_inf,1,length(TE_blade(1,:)),timestep);
+        TE_convected = TE_convected + repmat(dt*1.2*u_inf,1,length(TE_blade(1,:)),timestep);
         circulation_history = cat(3,circulation_history,circulation_blade);
     end
     
     B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
-    [dL,C_L,dD_i,C_D_i,alpha_i,C_N,C_T,w_ind,u_magnitude,dQ,dQ_cumulative,C_Q,C_Q_cumulative,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,Clspline,Cdspline,panel_width,cp_spanwise);
+    [~,~,~,~,~,~,~,~,~,~,~,~,~,~,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise);
     Thrust_convergence(timestep) = sum(dT);
     
     
@@ -122,7 +121,7 @@ end
 
 %% Calculating several forces & coefficients for the now-converged flow over the rotor blade
 B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
-[dL,C_L,dD_i,C_D_i,alpha_i,C_N,C_T,w_ind,u_magnitude,dQ,dQ_cumulative,C_Q,C_Q_cumulative,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,Clspline,Cdspline,panel_width,cp_spanwise);
+[dL,C_L,dD_i,C_D_i,alpha_i,alpha_eff,C_N,C_T,w_ind,u_magnitude,dQ,dQ_cumulative,C_Q,C_Q_cumulative,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise);
 P = omega*dQ_cumulative(end);
 CP = P/(0.5*rho*(norm(u_inf)^3)*pi*span^2);
 %% Remarks on convergence:
@@ -136,65 +135,76 @@ CP = P/(0.5*rho*(norm(u_inf)^3)*pi*span^2);
 figure(1)
 plot(cp_mu,circulation_history(:,1,1),cp_mu,circulation_history(:,1,3),cp_mu,circulation_history(:,1,5),cp_mu,circulation_history(:,1,7),cp_mu,circulation_history(:,1,10),cp_mu,circulation_history(:,1,14),cp_mu,circulation_history(:,1,18),cp_mu,circulation_history(:,1,22),cp_mu,circulation_history(:,1,26),cp_mu,circulation_history(:,1,30),cp_mu,circulation_history(:,1,35),cp_mu,circulation_history(:,1,40),cp_mu,circulation_history(:,1,45),cp_mu,circulation_history(:,1,50),cp_mu,circulation_history(:,1,60),cp_mu,circulation_history(:,1,70),cp_mu,circulation_history(:,1,80),cp_mu,circulation_history(:,1,90));%,cp_mu,circulation_history(:,1,100))
 grid minor
+title('Convergence of circulation distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Circulation [m2/s]')
 
 figure(2)
 plot(cp_mu,circulation_history(:,1,timestep))
 grid minor
+title('Circulation distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Circulation [m2/s]')
 
 figure(3)
 plot(cp_mu,C_N)
 grid minor
+title('Normal force coefficient distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Normal force coefficient C_N')
 
 figure(4)
 plot(cp_mu,3*C_T)
 grid minor
+title('Thrust force coefficient distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Thrust force coefficient C_T')
 
 figure(5)
-plot(cp_mu,alpha_i)
+plot(cp_mu,alpha_eff)
 grid minor
+title('Induced angle of attack distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induced angle of attack [deg]')
 
 figure(6)
 plot(cp_mu,C_L)
 grid minor
+title('Lift coefficient distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Lift coefficient C_L [-]')
 
 figure(7)
 plot(cp_mu,C_D_i)
 grid minor
+title('Induced drag distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Induced drag coefficient C_D_i [-]')
 
 figure(8)
 plot(cp_mu,w_ind)
 grid minor
+title('Induced blade-normal velocity distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Induced velocity in z-direction [m/s]')
+ylabel('Induced blade-normal velocity [m/s]')
 
 figure(9)
 subplot(2,1,1)
 plot(cp_mu,dQ)
 grid minor
+title('Torque distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque [N*m]')
 subplot(2,1,2)
 plot(cp_mu,C_Q)
 grid minor
+title('Torque coefficient distribution')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque coefficient [-]')
 
 figure(10)
-plot(linspace(1,max_timestep),Thrust_convergence)
+plot(linspace(1,max_timestep,max_timestep),Thrust_convergence)
 grid minor
+title('Thrust convergence history')
 xlabel('Iteration number [-]')
 ylabel('Thrust [N]')

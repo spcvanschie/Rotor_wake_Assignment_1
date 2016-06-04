@@ -29,7 +29,7 @@ for i = (1:N)
     run = 1; % iteration variable
     iteration = 1; % iteration number
     while run>0
-        mu_current = mu_local(i) % console output to show current spanwise coordinate
+        mu_current = mu_local(i); % console output to show current spanwise coordinate
         W = sqrt((U_inf.*(1-a_1)).^2+(r(i).*omega.*(1+a_tan_1)).^2);
         sinphi = (U_inf*(1-a_1))./W;
         phi = asind(sinphi);
