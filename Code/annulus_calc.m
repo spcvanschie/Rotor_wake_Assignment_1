@@ -47,7 +47,7 @@ for i = (1:N)
         end
         f_tip_1 = (2/pi)*acos(exp(-((B/2)*((1-mu_current)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
         f_root_1 = (2/pi)*acos(exp(-((B/2)*((mu_current-mu_min_hub)/mu_current)*sqrt(1+((lambda*mu_current)^2)/((1-a_calc_prelim)^2)))));
-        f_1 = 1;%f_tip_1*f_root_1;
+        f_1 = f_tip_1*f_root_1;
         if optimise < 1
             a_calc = thrust_a_prelim*((1-a_calc_prelim)^2)/(f_1*(1-a_calc_prelim*f_1));
         else

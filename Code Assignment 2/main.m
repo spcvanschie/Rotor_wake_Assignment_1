@@ -71,7 +71,7 @@ circulations = -A_ind_init\(Q_inf_init);
 
 %% Time marching section for t > 0
 
-Thrust_convergence = zeros(max_timestep,1);
+Thrust_convergence_ll = zeros(max_timestep,1);
 Q_ind_start = zeros(length(chord),max_timestep-1);
 %% Start of time marching
 for timestep = 1:max_timestep
@@ -85,7 +85,7 @@ for timestep = 1:max_timestep
     
     
     A_ind_upd = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,0);
-    Q_inf = freestreamvect(normalvectors_upd,u_inf_repmat,u_rotor_upd);
+    [Q_inf,u_combined] = freestreamvect(normalvectors_upd,u_inf_repmat,u_rotor_upd);
     
     if timestep < 2
         Q_ind = zeros(length(cp_spanwise),1);
@@ -102,17 +102,17 @@ for timestep = 1:max_timestep
     
     if timestep < 2
         TE_convected = TE_blade;
-        TE_convected = TE_convected + repmat(dt*1.2*u_inf,1,length(TE_blade(1,:)),timestep);
+        TE_convected = TE_convected + repmat(dt*u_inf,1,length(TE_blade(1,:)),timestep);
         circulation_history = circulation_blade;
     else
         TE_convected = cat(3,TE_convected,TE_blade);
-        TE_convected = TE_convected + repmat(dt*1.2*u_inf,1,length(TE_blade(1,:)),timestep);
+        TE_convected = TE_convected + repmat(dt*u_inf,1,length(TE_blade(1,:)),timestep);
         circulation_history = cat(3,circulation_history,circulation_blade);
     end
     
     B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
-    [~,~,~,~,~,~,~,~,~,~,~,~,~,~,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise);
-    Thrust_convergence(timestep) = sum(dT);
+    [~,~,~,~,~,~,~,~,~,~,~,~,~,~,~,~,~,~,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_combined,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise,omega);
+    Thrust_convergence_ll(timestep) = sum(dT);
     
     
     time = dt*(timestep-1);
@@ -120,8 +120,11 @@ for timestep = 1:max_timestep
 end
 
 %% Calculating several forces & coefficients for the now-converged flow over the rotor blade
+load('BEM_results_prandtl.mat');
+
+
 B_ind = induction_factors(normalvectors_upd,cp_coords_blade,vort_end_blade,TE_blade,eps,1);
-[dL,C_L,dD_i,C_D_i,alpha_i,alpha_eff,C_N,C_T,w_ind,u_magnitude,dQ,dQ_cumulative,C_Q,C_Q_cumulative,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_rotor_upd,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise);
+[dL,C_L,dD_i,C_D_i,alpha_inflow,alpha_i,alpha_eff,phi,C_N,C_T,w_ind,u_magnitude,dQ,dQ_cumulative,C_Q,C_Q_cumulative,dP,C_P,dT] = aero_coefficients(N,span,rho,chord,surface_area,chord,u_combined,u_inf,circulation_blade,B_ind,alpha,alphadata,Clspline,Cdspline,panel_width,cp_spanwise,omega);
 P = omega*dQ_cumulative(end);
 CP = P/(0.5*rho*(norm(u_inf)^3)*pi*span^2);
 %% Remarks on convergence:
@@ -147,25 +150,27 @@ xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Circulation [m2/s]')
 
 figure(3)
-plot(cp_mu,C_N)
+plot(cp_mu,C_N,mu_local,Cx_opt)
 grid minor
 title('Normal force coefficient distribution')
+legend('Lifting line','BEM','Location','South')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Normal force coefficient C_N')
+ylabel('Normal force coefficient C_N [-]')
 
 figure(4)
-plot(cp_mu,3*C_T)
+plot(cp_mu,C_T,mu_local,C_t_opt)
 grid minor
 title('Thrust force coefficient distribution')
+legend('Lifting line','BEM')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Thrust force coefficient C_T')
+ylabel('Thrust force coefficient C_T [-]')
 
-figure(5)
-plot(cp_mu,alpha_eff)
-grid minor
-title('Induced angle of attack distribution')
-xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
-ylabel('Induced angle of attack [deg]')
+% figure(5)
+% plot(cp_mu,rad2deg(alpha_eff))
+% grid minor
+% title('Effective angle of attack distribution')
+% xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+% ylabel('Effective angle of attack [deg]')
 
 figure(6)
 plot(cp_mu,C_L)
@@ -190,21 +195,57 @@ ylabel('Induced blade-normal velocity [m/s]')
 
 figure(9)
 subplot(2,1,1)
-plot(cp_mu,dQ)
+plot(cp_mu,dQ_cumulative,mu_local,Torque_opt)
 grid minor
 title('Torque distribution')
+legend('Lifting line','BEM','Location','North')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque [N*m]')
 subplot(2,1,2)
-plot(cp_mu,C_Q)
+plot(cp_mu,C_Q_cumulative,mu_local,C_q_opt)
 grid minor
 title('Torque coefficient distribution')
+legend('Lifting line','BEM','Location','North')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Torque coefficient [-]')
 
 figure(10)
-plot(linspace(1,max_timestep,max_timestep),Thrust_convergence)
+subplot(2,1,1)
+plot(cp_mu,rad2deg(phi),mu_local,phi_opt)
+grid minor
+title('Inflow angle')
+legend('Lifting line','BEM')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Inflow angle \phi [deg]')
+subplot(2,1,2)
+plot(cp_mu,rad2deg(alpha_eff),mu_local,AoA_opt)
+grid minor
+title('Angle of attack')
+legend('Lifting line','BEM')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Angle of attack \alpha [deg]')
+
+figure(11)
+plot(cp_mu,C_P,mu_local,Cp_opt)
+grid minor
+title('Power coefficient distribution')
+legend('Lifting line','BEM','Location','North')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Power coefficient [-]')
+
+figure(12)
+plot(linspace(1,max_timestep,max_timestep),Thrust_convergence_ll)
 grid minor
 title('Thrust convergence history')
 xlabel('Iteration number [-]')
 ylabel('Thrust [N]')
+
+%% Special plots
+
+figure(13)
+plot(cp_mu_40,circulation_history_40(:,1,timestep),cp_mu_80,circulation_history_80(:,1,timestep),cp_mu_120,circulation_history_120(:,1,timestep))
+grid minor
+title('Circulation distribution for different numbers of elements')
+legend('40 elements','80 elements','120 elements','Location','South')
+xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
+ylabel('Circulation [m2/s]')
