@@ -16,7 +16,7 @@ tsr = 8; % Tip Speed Ratio [-]
 omega = tsr*u_inf(1)/span; % rotor rotational rate in rad/s
 
 %% Discretisation parameter declaration
-n = 80; % number of collocation points [-]
+n = 160; % number of collocation points [-]
 dt = 0.01; % time step [s]
 max_timestep = 200; % number of time steps [-]
 timestep = 0; % initial time step number [-]
@@ -243,9 +243,17 @@ ylabel('Thrust [N]')
 %% Special plots
 
 figure(13)
-plot(cp_mu_40,circulation_history_40(:,1,timestep),cp_mu_80,circulation_history_80(:,1,timestep),cp_mu_120,circulation_history_120(:,1,timestep))
+plot(cp_mu_40,circulation_history_40(:,1,timestep),cp_mu_80,circulation_history_80(:,1,timestep),cp_mu_120,circulation_history_120(:,1,timestep),cp_mu_160,circulation_history_160(:,1,timestep))
 grid minor
 title('Circulation distribution for different numbers of elements')
 legend('40 elements','80 elements','120 elements','Location','South')
 xlabel('$\frac{r}{R} [-]$','Interpreter','LaTex')
 ylabel('Circulation [m2/s]')
+
+figure(14)
+plot(linspace(1,max_timestep,max_timestep),Thrust_convergence_40,linspace(1,max_timestep,max_timestep),Thrust_convergence_80,linspace(1,max_timestep,max_timestep),Thrust_convergence_120)
+grid minor
+title('Thrust convergence history')
+legend('40 elements','80 elements','120 elements','Location','South')
+xlabel('Iteration number [-]')
+ylabel('Thrust [N]')
