@@ -12,7 +12,7 @@ for i = 1:n % collocation point number
     for k = 1:timestep
         wake_ind = wake_ind + VOR2D(1,cp_coords(1,i),cp_coords(2,i),wake_coords(1,k),wake_coords(2,k),eps);
     end
-    v_ind = [cos(deg2rad(alpha)) -sin(deg2rad(alpha)); sin(deg2rad(alpha)) cos(deg2rad(alpha))]*[V_inf(1);V_inf(2)] + [0; omega*cp_coords(1,i)];
+    v_ind = [cos(deg2rad(alpha)) -sin(deg2rad(alpha)); sin(deg2rad(alpha)) cos(deg2rad(alpha))]*V_inf + [0; omega*cp_coords(1,i)];
     RHS(i,1) = -dot((v_ind+wake_ind),normal);
 end
 

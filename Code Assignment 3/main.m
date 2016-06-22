@@ -5,13 +5,13 @@ clear variables;
 eps = 10^-4; % vortex core epsilon [m]
 c = 1; % chord length [m]
 alpha_amplitude = 5; % amplitude of angle of attack changes [deg]
-alpha_0 = 5; % steady angle of attack [deg]
+alpha_0 = 3; % steady angle of attack [deg]
 V_inf = [10; 0]; % freestream velocity components [m/s]
 
-n = 100; % number of panels used [-]
-dt = 0.01; % time discretisation step [s]
-max_timestep = 500; % maximum number of time steps taken [-]
-k = 0.1; % reduced frequency [-]
+n = 5; % number of panels used [-]
+dt = 0.001; % time discretisation step [s]
+max_timestep = 1000; % maximum number of time steps taken [-]
+k = 0; % reduced frequency [-]
 
 omega = k*(2*norm(V_inf))/c; % rotational frequency [rad/s]
 
@@ -44,6 +44,14 @@ for i= 0:max_timestep
         
 end
 
+%% Calculating parameters at various points in the flow field
+x_table = linspace(-c,2*c,50);
+z_table = linspace(-c,2*c,50);
+x_vel = zeros(length(z_table),length(x_table));
+z_vel = zeros(length(z_table),length(x_table));
+[x_vel,z_vel,pos_x,pos_z,vel_mag] = velocityfield(x_table,z_table,x_vel,z_vel,gamma,vortex_strength,vort_coords,wake_coords,eps);
+
+
 %% Plots
 figure(1)
 plot(linspace(0,max_timestep,max_timestep+1),vortex_strength)
@@ -56,3 +64,11 @@ grid on
 
 figure(3)
 plot(cp_chord,gamma(1:end-1))
+
+figure(4)
+surf(pos_x,pos_z,vel_mag,'edgecolor','none')
+view(2)
+colormap(jet)
+%alpha(0.1)
+colorbar
+caxis([0 100])

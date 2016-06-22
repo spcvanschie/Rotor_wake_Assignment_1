@@ -6,7 +6,8 @@ for k = 1:timestep+1
             wake_movement(:,k) = wake_movement(:,k) + VOR2D(gamma(i),wake_coords(1,k),wake_coords(2,k),vort_coords(1,i),vort_coords(2,i),eps);
         end
         for j = (1):(timestep+1)
-            wake_movement(:,k) = wake_movement(:,k) + 0.01*VOR2D(vortex_strength(j),wake_coords(1,k),wake_coords(2,k),wake_coords(1,j),wake_coords(2,j),eps);
+            vor = VOR2D(vortex_strength(j),wake_coords(1,k),wake_coords(2,k),wake_coords(1,j),wake_coords(2,j),eps);
+            wake_movement(:,k) = wake_movement(:,k) + vor;
         end
     end
     wake_movement(:,k) = wake_movement(:,k) + V_inf;
