@@ -2,14 +2,14 @@ clear variables;
 %close all;
 
 %% Declaration of variables
-eps = 10^-4; % vortex core epsilon [m]
+eps = 10^-6; % vortex core epsilon [m]
 c = 1; % chord length [m]
 alpha_amplitude = 5; % amplitude of angle of attack changes [deg]
 alpha_0 = 3; % steady angle of attack [deg]
 V_inf = [10; 0]; % freestream velocity components [m/s]
 
 n = 5; % number of panels used [-]
-dt = 0.001; % time discretisation step [s]
+dt = 0.0001; % time discretisation step [s]
 max_timestep = 1000; % maximum number of time steps taken [-]
 k = 0; % reduced frequency [-]
 
@@ -21,6 +21,8 @@ alphadot = zeros(1,max_timestep+1);
 gamma_previous = zeros(1,n+1);
 wake_coords = zeros(2,max_timestep+1);
 vortex_strength = zeros(1,max_timestep+1);
+CL = zeros(1,max_timestep+1);
+
 for i= 0:max_timestep
     %% Computation of vortex and collocation point coordinates
     alpha(i+1) = alpha_amplitude*sin(i*dt*omega) + alpha_0;
@@ -36,6 +38,7 @@ for i= 0:max_timestep
     %% Update several quantities for the calculations during the next time step
     gamma_previous = gamma;
     vortex_strength(i+1) = gamma(end);
+    CL(i+1) = sum(gamma(1:end-1))/(0.5*c*norm(V_inf));
     
     [wake_coords,wake_movement,wake_change,wake_convection] = wake_convect(n,i,dt,wake_coords,gamma,vortex_strength,vort_coords,V_inf,eps);
     
@@ -59,7 +62,7 @@ title('Strength of shed vortices')
 xlabel('Time step [-]')
 
 figure(2)
-plot(cp_coords(1,:),cp_coords(2,:),'r+',wake_coords(1,:),wake_coords(2,:),'bo',wake_coords(1,:),wake_coords(2,:),'g')
+plot(cp_coords(1,:),cp_coords(2,:),'r+',wake_coords(1,:),wake_coords(2,:),'bo')
 grid on
 
 figure(3)
@@ -71,4 +74,10 @@ view(2)
 colormap(jet)
 %alpha(0.1)
 colorbar
-caxis([0 100])
+caxis([0 10])
+
+figure(5)
+plot(linspace(0,max_timestep,max_timestep+1),CL)
+title('Airfoil lift coefficient')
+xlabel('Time step [-]')
+ylabel('Airfoil lift coefficient C_l [1/m]')
