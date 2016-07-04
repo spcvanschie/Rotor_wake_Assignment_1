@@ -11,7 +11,6 @@ for k = 1:timestep+1
         end
     end
     wake_movement(:,k) = wake_movement(:,k) + V_inf;
-    %wake_movement(2,k) = 0;
 end
 wake_change = dt.*wake_movement;
 wake_convection = cat(2,wake_change,zeros(2,(length(wake_coords(1,:))-(timestep+1))));

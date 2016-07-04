@@ -8,10 +8,10 @@ alpha_amplitude = 5; % amplitude of angle of attack changes [deg]
 alpha_0 = 3; % steady angle of attack [deg]
 V_inf = [10; 0]; % freestream velocity components [m/s]
 
-n = 5; % number of panels used [-]
-dt = 0.0001; % time discretisation step [s]
-max_timestep = 1000; % maximum number of time steps taken [-]
-k = 0; % reduced frequency [-]
+n = 20; % number of panels used [-]
+dt = 0.02; % time discretisation step [s]
+max_timestep = 500; % maximum number of time steps taken [-]
+k = 0.01; % reduced frequency [-]
 
 omega = k*(2*norm(V_inf))/c; % rotational frequency [rad/s]
 
@@ -52,7 +52,7 @@ x_table = linspace(-c,2*c,50);
 z_table = linspace(-c,2*c,50);
 x_vel = zeros(length(z_table),length(x_table));
 z_vel = zeros(length(z_table),length(x_table));
-[x_vel,z_vel,pos_x,pos_z,vel_mag] = velocityfield(x_table,z_table,x_vel,z_vel,gamma,vortex_strength,vort_coords,wake_coords,eps);
+[x_vel,z_vel,pos_x,pos_z,vel_mag,CP] = velocityfield(x_table,z_table,x_vel,z_vel,gamma,vortex_strength,vort_coords,wake_coords,V_inf,eps);
 
 
 %% Plots
@@ -74,10 +74,18 @@ view(2)
 colormap(jet)
 %alpha(0.1)
 colorbar
-caxis([0 10])
+caxis([7 13])
 
 figure(5)
 plot(linspace(0,max_timestep,max_timestep+1),CL)
 title('Airfoil lift coefficient')
 xlabel('Time step [-]')
 ylabel('Airfoil lift coefficient C_l [1/m]')
+
+figure(6)
+surf(pos_x,pos_z,CP,'edgecolor','none')
+view(2)
+colormap(jet)
+%alpha(0.1)
+colorbar
+caxis([-0.5 0.5])
